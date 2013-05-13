@@ -31,7 +31,7 @@ namespace VisualStudioController {
         public bool Initialize(System.String targetName)
         {
             targetDTE_ = GetDTEFromSolutionName(targetName);
-            if(targetDTE_ == null && System.String.IsNullOrEmpty(targetName) == true ){
+            if(targetDTE_ == null && System.String.IsNullOrEmpty(targetName) == false){
                 targetDTE_ = GetDTEFromEditFileName(targetName);
             }
 
@@ -164,15 +164,22 @@ namespace VisualStudioController {
             targetDTE_.Solution.SolutionBuild.Clean(wait);
         }
 
+        
         public void RunSolution()
         {
             targetDTE_.Solution.SolutionBuild.Run();
+        }
+
+        public void DebugSolution()
+        {
+            targetDTE_.Solution.SolutionBuild.Debug();
         }
 
         public System.String GetCurrentEditFileName()
         {
             EnvDTE.Document document = targetDTE_.ActiveDocument;
             ConsoleWriter.WriteLine(document.FullName);
+         
             return document.FullName;
         }
 

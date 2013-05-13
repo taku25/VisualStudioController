@@ -66,9 +66,9 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.GetFile] = true;
                 }else if (args[0] == "getoutput"){
                     commnadType_[(int)CommandType.GetOutput] = true;
-                }else if (args[0] == "getfindreslt1"){
+                }else if (args[0] == "getfindresult1"){
                     commnadType_[(int)CommandType.GetFindResult1] = true;
-                }else if (args[0] == "getfindreslt2"){
+                }else if (args[0] == "getfindresult2"){
                     commnadType_[(int)CommandType.GetFindResult2] = true;
                 }
             
@@ -105,8 +105,8 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("run                 : 実行");
             ConsoleWriter.WriteLine ("getfile             : 編集中ファイル取得" );
             ConsoleWriter.WriteLine ("getoutput           : 出力Windowの中身を取得");
-            ConsoleWriter.WriteLine ("getfindreslt1       : 検索結果1を取得");
-            ConsoleWriter.WriteLine ("getfindreslt2       : 検索結果2を取得");
+            ConsoleWriter.WriteLine ("getfindresult1       : 検索結果1を取得");
+            ConsoleWriter.WriteLine ("getfindresult2       : 検索結果2を取得");
             //ConsoleWriter.WriteLine ("getfindsimbolresult : シンボルの検索結果を取得");
             //Console.WriteLine ("addbreck                : ブレークポイントの追加");
             ConsoleWriter.WriteLine ("<options>           : ");
