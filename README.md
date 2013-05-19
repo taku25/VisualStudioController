@@ -57,6 +57,6 @@ https://github.com/taku25/vim-visualstudio
     -w                  : 終わるまで待つ(build and rebuild時に有効)
     -d                  : 詳細情報も出力(debug用)
     -f                  : BreakPointを設定したい対象のファイル名(FullPath) -tにSourceFilePathを設定していた場合はそれを使います
-    -column             : 列を指定します
     -line               : 行を指定します
+    -column             : 列を指定します
 * 引数なし実行で以上のヘルプを見ることができます
