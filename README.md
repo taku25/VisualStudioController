@@ -7,7 +7,7 @@ version 2013/5/17
 ##用途 & 目的
 スクリプト言語や拡張機能に対応したその他エディターからVisualStudioを操作することを主な用途として作成しています  
 なので使用するツールに依存するような機能は入れない予定です  
-作者普段vimからVisualStudioを操作する目的で使用しています  
+作者は普段vim上からVisualStudioを操作する目的で使用しています  
 https://github.com/taku25/vim-visualstudio  
 
 
