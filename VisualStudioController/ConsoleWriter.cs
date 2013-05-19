@@ -26,7 +26,6 @@ namespace VisualStudioController{
             WriteLine_ (cString, false);
         }
 
-
         static private void WriteLine_ (System.String cString, bool debug)
         {
             if (debug == true && DebugEnable == false){
