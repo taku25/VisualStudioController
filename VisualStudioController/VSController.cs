@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using EnvDTE;
@@ -22,13 +22,31 @@ namespace VisualStudioController {
         {
         }
         
+        public class ProjectBuildInfo{
+            public ProjectBuildInfo(System.String projectName, bool isBuild)
+            {
+                projectName_ = projectName;
+                isBuild_ = isBuild;
+            }
+
+            private System.String projectName_;
+            private bool isBuild_;
+            public System.String ProjectName
+            {
+                get { return projectName_; }
+            }
+
+            public bool IsBuild
+            {
+                get { return isBuild_; }
+            }
+        }
+
         
-#region ‚ß‚ñ‚Î
+#region ã‚ã‚“ã°
         static private System.String VisualStudioProcessName = @"!VisualStudio.DTE";
-//        private System.String targetVersoinErrorListGUID_;
-//        private const System.String errorListWindowGUID = "{D78612C7-9962-4B83-95D9-268046DAD23A}";
         DTE targetDTE_;
-        EnvDTE80.DTE2 targetDTE2_; //2005ˆÈã
+        EnvDTE80.DTE2 targetDTE2_; //2005ä»¥ä¸Š
 
 #endregion
 
@@ -43,16 +61,24 @@ namespace VisualStudioController {
             
 
             if(targetDTE_ == null){
-                ConsoleWriter.WriteDebugLine(@"VisualStudio‚ÌƒvƒƒZƒX‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ");
+                ConsoleWriter.WriteDebugLine(@"VisualStudioã®ãƒ—ãƒ­ã‚»ã‚¹ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
             }
-            //errorˆê——‚Æ‚©‚ª‚Ù‚µ‚¢‚Ì‚Åˆê‰‚±‚ê‚à‚à‚Á‚Ä‚¨‚­
+            //errorä¸€è¦§ã¨ã‹ãŒã»ã—ã„ã®ã§ä¸€å¿œã“ã‚Œã‚‚ã‚‚ã£ã¦ãŠã
             targetDTE2_ = targetDTE_ as EnvDTE80.DTE2;
+
             return targetDTE_ != null;
         }
 
-        //‚±‚Ìˆø”‚ß‚Á‚¿‚á‚«‚à‚¿‚í‚é‚¢‚È‚Ÿ` ‚³‚Ä‚Ç‚¤‚·‚Á‚©‚È‚Ÿ`..
+        //ã“ã®å¼•æ•°ã‚ã£ã¡ã‚ƒãã‚‚ã¡ã‚ã‚‹ã„ãªãã€œ ã•ã¦ã©ã†ã™ã£ã‹ãªãã€œ..
         public void Run (ArgsConvert argsConvert)
         {
+            EnvDTE.Project targetProject = null;
+            System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList = null;
+            if(System.String.IsNullOrEmpty(argsConvert.TargetProjectName) == false){
+                targetProject = GetProject(argsConvert.TargetProjectName);
+                projectBuildInfoList = CreateProjectBuildInfoList();
+
+            }
             if(argsConvert.Commnad(ArgsConvert.CommandType.Build) == true){
                 BuildSolution(false, argsConvert.IsWait);
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.ReBuild) == true){
@@ -74,11 +100,21 @@ namespace VisualStudioController {
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindSimbolResult) == true){
                 WriteFindSymbolResultWindowText();
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetAllFile) == true){
-                GetAllFile();
+                WriteAllFile();
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.AddBreakPoint) == true){
                 AddBreakPoint(argsConvert.FileFullPath, argsConvert.Line, argsConvert.Column);
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetErrorList) == true){
                 WriteErrorWindowText();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.BuildProject) == true){
+                BuildProject(false, targetProject, projectBuildInfoList);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.ReBuildProject) == true){
+                BuildProject(true, targetProject, projectBuildInfoList);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CleanProject) == true){
+                CleanProject(targetProject, projectBuildInfoList);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.OpenFile) == true){
+                OpenFile(argsConvert.FileFullPath);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CompileFile) == true){
+                CompileFile(argsConvert.FileFullPath);
             }
         }
 
@@ -108,26 +144,34 @@ namespace VisualStudioController {
             if(dtelist == null){
                 dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
             }
-            //‚Æ‚è‚ ‚¦‚¸‚¢‚Á‚±‚ß‚ğ‚©‚¦‚·
+            //ã¨ã‚Šã‚ãˆãšã„ã£ã“ã‚ã‚’ã‹ãˆã™
             if(System.String.IsNullOrEmpty(name) == true){
                 foreach(DTE dte in dtelist){
                     return dte;
                 }
             }
             name = name.ToLower();
+            DTE tempDte = null;
+            //æœ€åˆã«å®Œå…¨ä¸€è‡´ã‹ã©ã†ã‹
             foreach(DTE dte in dtelist){
-                //æ“ª‚©‚çˆê•”•ª‚Ì‚Ğ‚©‚­‚Å‚àok‚É‚·‚é
-                //Å‰‚ÉŠ®‘Sˆê’v‚©‚Ç‚¤‚©
                 System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
                 if(solutionFullName == name){
-                    return dte;
-                }
-                //Ÿ‚Éæ“ª‚©‚ç“¯‚¶‚©‚Ç‚¤‚©
-                if(solutionFullName.IndexOf (name) == 0){
-                    return dte;
+                    tempDte = dte;
+                    break;
                 }
             }
-            return null;
+
+            if(tempDte  == null){
+                //å…ˆé ­ã‹ã‚‰ä¸€éƒ¨åˆ†ã®ã²ã‹ãã§ã‚‚okã«ã™ã‚‹
+                foreach(DTE dte in dtelist){
+                    System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
+                    if(solutionFullName.IndexOf (name) == 0){
+                        tempDte = dte;
+                        break;
+                    }
+                }
+            }
+            return tempDte;
         }
 
         private System.Collections.Generic.List<DTE> GetDTEFromProcessListFromName(String name)
@@ -180,6 +224,7 @@ namespace VisualStudioController {
             }
             targetDTE_.Solution.SolutionBuild.Build(wait);
         }
+
         public void CleanSolution(bool wait)
         {
             targetDTE_.Solution.SolutionBuild.Clean(wait);
@@ -195,6 +240,96 @@ namespace VisualStudioController {
             targetDTE_.Solution.SolutionBuild.Debug();
         }
 
+        public EnvDTE.Project GetProject(System.String projectName)
+        {
+            EnvDTE.Project tempProject = null;
+            projectName = projectName.ToLower();
+            foreach (Project project in targetDTE_.Solution.Projects){
+                if(projectName == project.Name.ToLower()){
+                    tempProject = project;
+                    break;
+                }
+            }
+
+            if(tempProject == null){
+                foreach (Project project in targetDTE_.Solution.Projects){
+                    if(project.Name.ToLower().IndexOf(projectName) == 0){
+                        tempProject = project;
+                        break;
+                    }
+                }
+            }
+            return tempProject;
+        }
+
+        //
+        private System.Collections.Generic.List<ProjectBuildInfo> CreateProjectBuildInfoList()
+        {
+            System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList = new System.Collections.Generic.List<ProjectBuildInfo>();
+            foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
+                projectBuildInfoList.Add(new ProjectBuildInfo(context.ProjectName, context.ShouldBuild));
+            }
+            return projectBuildInfoList;
+        }
+
+        //æœ¬å½“ã¯åå‰è¾¼ã¿ã§ã¡ã‚ƒã‚“ã¨æˆ»ã•ãªã„ã¨ã„ã‘ãªã„ã‚“ã ã‚ã†ãªãï½...
+        private void RestoreProjectBuildInfo(System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
+        {
+            foreach (ProjectBuildInfo projectInfo in projectBuildInfoList){
+                foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
+                    if(projectInfo.ProjectName == context.ProjectName){
+                        context.ShouldBuild = projectInfo.IsBuild;
+                        break;
+                    }
+                }
+            }
+        }
+
+        public void BuildProject(bool rebuild, EnvDTE.Project project, System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
+        {
+
+            if(projectBuildInfoList == null){
+                projectBuildInfoList = CreateProjectBuildInfoList();
+            }
+
+            foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
+                if (context.ProjectName == project.UniqueName){
+                    context.ShouldBuild = true;
+                }else{
+                    context.ShouldBuild = false;
+                }
+            }
+   
+            if(rebuild == true){
+                CleanProject(project, projectBuildInfoList);
+            }
+
+            targetDTE_.Solution.SolutionBuild.Build(true);
+
+            RestoreProjectBuildInfo(projectBuildInfoList);
+            
+        }
+
+        public void CleanProject(EnvDTE.Project project, System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
+        {
+            if(projectBuildInfoList == null){
+                projectBuildInfoList = CreateProjectBuildInfoList();
+            }
+
+            foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
+                if (context.ProjectName == project.UniqueName){
+                    context.ShouldBuild = true;
+                }else{
+                    context.ShouldBuild = false;
+                }
+            }
+
+            targetDTE_.Solution.SolutionBuild.Clean(true);
+
+            RestoreProjectBuildInfo(projectBuildInfoList);
+        }
+
+
         public System.String WriteCurrentEditFileName()
         {
             EnvDTE.Document document = targetDTE_.ActiveDocument;
@@ -209,7 +344,19 @@ namespace VisualStudioController {
             targetDTE_.Solution.DTE.Debugger.Breakpoints.Add("", fileFullPath, line, column);
         }
 
-        public void GetAllFile()
+        public void OpenFile(System.String fileFullPath)
+        {
+            targetDTE_.ItemOperations.OpenFile(fileFullPath);
+        }
+
+        public void CompileFile(System.String fileFullPath)
+        {
+            OpenFile(fileFullPath);
+            //ã‚ã¾ã‚Šã‚³ãƒãƒ³ãƒ‰ä½¿ã„ãŸããªã„ã®ã ã‘ã©ã‚ã‹ã‚‰ãªã„ã®ã§ã‚ãã‚‰ã‚
+            targetDTE_.ExecuteCommand("Build.Compile");
+        }
+
+        public void WriteAllFile()
         {
             foreach (Project project in targetDTE_.Solution.Projects){
                 foreach (ProjectItem item in project.ProjectItems){
@@ -239,7 +386,7 @@ namespace VisualStudioController {
                window = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
             }
             if(window == null){
-                ConsoleWriter.WriteDebugLine("ŒŸõŒ‹‰ÊWindow‚ª‚İ‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+                ConsoleWriter.WriteDebugLine("æ¤œç´¢çµæœWindowãŒã¿ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
                 return;
             }
             TextSelection textSelection = window.Selection as TextSelection;
@@ -254,14 +401,14 @@ namespace VisualStudioController {
             Window window = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
             
             if(window == null){
-                ConsoleWriter.WriteDebugLine("ŒŸõŒ‹‰ÊWindow‚ª‚İ‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+                ConsoleWriter.WriteDebugLine("æ¤œç´¢çµæœWindowãŒã¿ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
                 return;
             }
             
 
-            //‚Æ‚è‚©‚½‚ğ–Íõ’†
-            //‚±‚ê‚É‚à‚Í‚¢‚Á‚Ä‚¢‚È‚©‚Á‚½...
-            //‚à‚µ‚©‚µ‚Äerror‚Æ‚¨‚È‚¶‚Å‚º‚ñ‚º‚ñˆá‚¤êŠ‚É‚©‚­‚Ì‚¤‚³‚ê‚Ä‚¢‚é‚Ì‚©H
+            //ã¨ã‚Šã‹ãŸã‚’æ¨¡ç´¢ä¸­
+            //ã“ã‚Œã«ã‚‚ã¯ã„ã£ã¦ã„ãªã‹ã£ãŸ...
+            //ã‚‚ã—ã‹ã—ã¦errorã¨ãŠãªã˜ã§ãœã‚“ãœã‚“é•ã†å ´æ‰€ã«ã‹ãã®ã†ã•ã‚Œã¦ã„ã‚‹ã®ã‹ï¼Ÿ
             foreach(EnvDTE.ContextAttribute contextAttribute in window.ContextAttributes){
                 if(contextAttribute.Values is object[]){
                     object[] objectarray = contextAttribute.Values as object[];
@@ -278,18 +425,18 @@ namespace VisualStudioController {
         public void WriteErrorWindowText ()
         {
             if(targetDTE2_ == null){
-                ConsoleWriter.WriteDebugLine("visual studio2005ˆÈã‚Å‚È‚¢‚Æg—p‚Å‚«‚Ü‚¹‚ñ");
+                ConsoleWriter.WriteDebugLine("visual studio2005ä»¥ä¸Šã§ãªã„ã¨ä½¿ç”¨ã§ãã¾ã›ã‚“");
                 return;
             }
 
             if(targetDTE2_.ToolWindows.ErrorList == null){
-                ConsoleWriter.WriteDebugLine("ErrorList‚ª‚İ‚Â‚©‚è‚Ü‚¹‚ñ");
+                ConsoleWriter.WriteDebugLine("ErrorListãŒã¿ã¤ã‹ã‚Šã¾ã›ã‚“");
                 return;
             }
 
             EnvDTE80.ErrorItems errorItems =  targetDTE2_.ToolWindows.ErrorList.ErrorItems;
             if(errorItems == null){
-                ConsoleWriter.WriteDebugLine("ItemList‚ª‚İ‚Â‚©‚è‚Ü‚¹‚ñ");
+                ConsoleWriter.WriteDebugLine("ItemListãŒã¿ã¤ã‹ã‚Šã¾ã›ã‚“");
                 return;
             }
       
