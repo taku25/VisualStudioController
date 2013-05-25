@@ -18,7 +18,7 @@ https://github.com/taku25/vim-visualstudio
 * Windows 7 32bit / 64 bit
 
 ##機能
-###version 2013/5/17現在
+###version 2013/5/25現在
 * 対象のVisualStudioで編集中のソリューションをビルドする
 * 対象のVisualStudioで編集中のソリューションをリビルドする
 * 対象のVisualStudioで編集中のソリューションをクリーンする
