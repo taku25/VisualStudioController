@@ -7,7 +7,7 @@ version 2013/5/25
 ##用途 & 目的
 スクリプト言語や拡張機能に対応したその他エディターからVisualStudioを操作することを主な用途として作成しています  
 なので使用するツールに依存するような機能は入れない予定です  
-作者は普段vim上からVisualStudioを操作する目的で使用しています  
+ちなみに私はvim上からVisualStudioを操作する目的で使用しています  
 https://github.com/taku25/vim-visualstudio  
 
 
@@ -20,18 +20,23 @@ https://github.com/taku25/vim-visualstudio
 ##機能
 ###version 2013/5/17現在
 * 対象のVisualStudioで編集中のソリューションをビルドする
+* 対象のVisualStudioで編集中のソリューションをリビルドする
 * 対象のVisualStudioで編集中のソリューションをクリーンする
+* 対象のVisualStudioで編集中の指定したプロジェクトのみをビルドする
+* 対象のVisualStudioで編集中の指定したプロジェクトのみをリビルドする
+* 対象のVisualStudioで編集中の指定したプロジェクトのみをクリーンする
+* 対象のVisualStudioで編集中の指定したファイルのみをコンパイルする
 * 対象のVisualStudioで編集中のソリューションを実行する
 * 対象のVisualStuidoで編集中のソリューションをデバッグ実行する
-* 対象のVisualStudioで現在編集中ファイルのファイル名(フルパス)をコンソールに表示する
-* 対象のVisualStudioで編集中のソリューションに含まれるファイル名(フルパス)をすべてコンソールに表示する
+* 対象のVisualStudioで現在編集中ファイルのファイル名(フルパス)をコンソールに出力する
+* 対象のVisualStudioで編集中のソリューションに含まれるファイル名(フルパス)をすべてコンソールに出力する
 * 対象のVisualStudioの出力ウインドウに表示されている内容をコンソールに出力する
 * 対象のVisualStudioの検索結果ウインドウ1に表示されいている内容をコンソールに出力する
 * 対象のVisualStudioの検索結果ウインドウ2に表示されいている内容をコンソールに出力する
 * 対象のVisualStudioのエラー一覧ウインドウに表示されいている内容をコンソールに出力する
  * Visual Studio 2005以上で有効 
 * 対象のVisualstudioに含まれているファイル名(フルパス)と行数を指定してブレイクポイントを設定する
-
+* 対象のVisualstudioで指定したファイルを開く
 
 
 ##使い方
