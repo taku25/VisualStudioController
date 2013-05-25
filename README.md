@@ -1,5 +1,5 @@
 #VisualStudioController  
-version 2013/5/17  
+version 2013/5/25  
 
 ##説明
 起動中のVisualStudioを外部から操作または情報を取得するコンソールアプリケーション  
@@ -43,6 +43,10 @@ https://github.com/taku25/vim-visualstudio
     build               : ビルド
     rebuild             : リビルド
     clean               : クリーン
+    buildproject        : プロジェクトのビルド  強制的にwaitします
+    rebuildproject      : プロジェクトのリビルド  強制的にwaitします
+    cleanproject        : プロジェクトのクリーン  強制的にwaitします
+    compilefile         : ファイルのコンパイル
     run                 : 実行
     debugrun            : デバッグ実行
     getfile             : 編集中ファイル取得
@@ -52,11 +56,15 @@ https://github.com/taku25/vim-visualstudio
     getfindresult2      : 検索結果2を取得
     geterrorlist        : エラー一覧の取得
     addbreakpoint       : ブレークポイントの追加
+    openfile            : ファイルを開く
     <options>           :
+    -h                  : ヘルプの表示
     -t                  : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名
+                        : SolutionName(name)で指定する場合 名前の先頭一部でも有効です
     -w                  : 終わるまで待つ(build and rebuild時に有効)
-    -d                  : 詳細情報も出力(debug用)
-    -f                  : BreakPointを設定したい対象のファイル名(FullPath) -tにSourceFilePathを設定していた場合はそれを使います
+    -f                  : 対象のソースファイル名(FullPath)を指定します. また-fに何も設定されていなかった場合かつ-tにSourceFilePathを設定していた場合はそれを使います
+    -p                  : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です
     -line               : 行を指定します
     -column             : 列を指定します
+    -debug              : 詳細情報も出力(debug用)
 * 引数なし実行で以上のヘルプを見ることができます
