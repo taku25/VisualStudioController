@@ -114,10 +114,26 @@ namespace VisualStudioController {
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.OpenFile) == true){
                 OpenFile(argsConvert.FileFullPath);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CompileFile) == true){
-                CompileFile(argsConvert.FileFullPath);
+                CompileFile(argsConvert.FileFullPath, argsConvert.IsWait);
             }
         }
 
+
+        private bool _getDTEFromEditFileName (String name, ProjectItem item)
+        {
+            if(item.Kind == Constants.vsProjectItemKindPhysicalFile){
+                if(item.FileNames[0].ToLower() == name){
+                    return true;
+                }
+            }else{
+                foreach (ProjectItem childItem in item.ProjectItems){
+                    if(_getDTEFromEditFileName(name, childItem) == true){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         private DTE GetDTEFromEditFileName(String name, System.Collections.Generic.List<DTE> dtelist = null)
         {
@@ -126,14 +142,16 @@ namespace VisualStudioController {
                 dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
             }
             foreach(DTE dte in dtelist){
-                foreach (Project project in dte.Solution.Projects){
-                    foreach (ProjectItem item in project.ProjectItems){
-                        if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
-                            if(item.FileNames[0].ToLower () == name){
+                //foreachがうまくうごかん...
+                for(int i = 0; i < dte.Solution.Projects.Count; i++){
+                    Project project = dte.Solution.Projects.Item(i + 1);
+                    //foreach (Project project in dte.Solution.Projects){
+                        foreach (ProjectItem item in project.ProjectItems){
+                            if(_getDTEFromEditFileName (name, item) == true){
                                 return dte;
                             }
                         }
-                    }
+                    //}
                 }
             }
             return null;
@@ -349,20 +367,41 @@ namespace VisualStudioController {
             targetDTE_.ItemOperations.OpenFile(fileFullPath);
         }
 
-        public void CompileFile(System.String fileFullPath)
+        public void CompileFile(System.String fileFullPath, bool wait)
         {
             OpenFile(fileFullPath);
             //あまりコマンド使いたくないのだけどわからないのであきらめ
             targetDTE_.ExecuteCommand("Build.Compile");
+            
+
+            while (wait){
+                try{
+                    if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
+                        System.Threading.Thread.Sleep(100);
+                    }else{
+                        break;
+                    }
+                }catch{
+                }
+            }
+        }
+
+        private void _writeAllFileName (ProjectItem item)
+        {
+            if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
+                ConsoleWriter.WriteLine(item.FileNames[0]);
+            }else{
+                foreach (ProjectItem childItem in item.ProjectItems){
+                    _writeAllFileName(childItem);
+                }
+            }
         }
 
         public void WriteAllFile()
         {
             foreach (Project project in targetDTE_.Solution.Projects){
                 foreach (ProjectItem item in project.ProjectItems){
-                    if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
-                        ConsoleWriter.WriteLine(item.FileNames[0]);
-                    }
+                    _writeAllFileName(item);
                 }
             }
         }
@@ -442,7 +481,10 @@ namespace VisualStudioController {
       
             for(int i = 1; i <= errorItems.Count; i++){
                 EnvDTE80.ErrorItem item = errorItems.Item(i);
-                ConsoleWriter.WriteLine("message@" + item.Description + " file@" + item.FileName + " line@" + item.Line + " column@" + item.Column.ToString());
+
+                System.String lineAndCol = "(" + item.Line.ToString() + ")";
+
+                ConsoleWriter.WriteLine(item.FileName + " " + lineAndCol + ": "  + item.Description);
             }
         }
     }
