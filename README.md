@@ -26,6 +26,7 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualStudioで編集中の指定したプロジェクトのみをリビルドする
 * 対象のVisualStudioで編集中の指定したプロジェクトのみをクリーンする
 * 対象のVisualStudioで編集中の指定したファイルのみをコンパイルする
+* 対象のVisualStudioがビルド中ならビルドをキャンセルする
 * 対象のVisualStudioで編集中のソリューションを実行する
 * 対象のVisualStuidoで編集中のソリューションをデバッグ実行する
 * 対象のVisualStudioで現在編集中ファイルのファイル名(フルパス)をコンソールに出力する
@@ -53,6 +54,7 @@ https://github.com/taku25/vim-visualstudio
     rebuildproject      : プロジェクトのリビルド  強制的にwaitします
     cleanproject        : プロジェクトのクリーン  強制的にwaitします
     compilefile         : ファイルのコンパイル
+    buildcancel         : ビルドのキャンセル
     run                 : 実行
     debugrun            : デバッグ実行
     getfile             : 編集中ファイル取得
