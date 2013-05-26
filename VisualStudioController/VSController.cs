@@ -115,6 +115,8 @@ namespace VisualStudioController {
                 OpenFile(argsConvert.FileFullPath);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CompileFile) == true){
                 CompileFile(argsConvert.FileFullPath, argsConvert.IsWait);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.BuildCancel) == true){
+                BuildCancel();
             }
         }
 
@@ -378,6 +380,20 @@ namespace VisualStudioController {
                 try{
                     if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
                         System.Threading.Thread.Sleep(100);
+                    }else{
+                        break;
+                    }
+                }catch{
+                }
+            }
+        }
+
+        public void BuildCancel()
+        {
+            while(true){
+                try{
+                    if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
+                        targetDTE_.ExecuteCommand("Build.Cancel");
                     }else{
                         break;
                     }

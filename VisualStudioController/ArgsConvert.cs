@@ -14,6 +14,7 @@ namespace VisualStudioController {
             ReBuildProject,
             CleanProject,
             CompileFile,
+            BuildCancel,
             Run,
             DebugRun,
             GetFile,
@@ -114,6 +115,8 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.GetErrorList] = true;
                 }else if (args[0] == "openfile"){
                     commnadType_[(int)CommandType.OpenFile] = true;
+                }else if (args[0] == "buildcancel"){
+                    commnadType_[(int)CommandType.BuildCancel] = true;
                 }
             
                 for(int i = 1; i < args.Length; i++){
@@ -163,6 +166,7 @@ namespace VisualStudioController {
 
         public void ArgsInfo ()
         {
+            
             ConsoleWriter.WriteLine ("Usage: VisualStudioController <commnad> <options> ");
             ConsoleWriter.WriteLine ("version 0.7");
             ConsoleWriter.WriteLine ("<commnad>:");
@@ -173,6 +177,7 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("rebuildproject      : プロジェクトのリビルド  強制的にwaitします");
             ConsoleWriter.WriteLine ("cleanproject        : プロジェクトのクリーン  強制的にwaitします");
             ConsoleWriter.WriteLine ("compilefile         : ファイルのコンパイル");
+            ConsoleWriter.WriteLine ("buildcancel         : ビルドのキャンセル");
             ConsoleWriter.WriteLine ("run                 : 実行");
             ConsoleWriter.WriteLine ("debugrun            : デバッグ実行");
             ConsoleWriter.WriteLine ("getfile             : 編集中ファイル取得" );
