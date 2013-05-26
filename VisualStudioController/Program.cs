@@ -17,6 +17,7 @@ using EnvDTE;
 namespace VisualStudioController {
     public class Program
     {
+        [System.STAThreadAttribute()]
         static void Main(string[] args)
         {
             ArgsConvert argsConvert = new ArgsConvert ();

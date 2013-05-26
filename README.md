@@ -1,5 +1,5 @@
 #VisualStudioController  
-version 2013/5/25  
+version 2013/5/26  
 
 ##説明
 起動中のVisualStudioを外部から操作または情報を取得するコンソールアプリケーション  
@@ -33,6 +33,7 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualStudioの出力ウインドウに表示されている内容をコンソールに出力する
 * 対象のVisualStudioの検索結果ウインドウ1に表示されいている内容をコンソールに出力する
 * 対象のVisualStudioの検索結果ウインドウ2に表示されいている内容をコンソールに出力する
+* 対象のVisualStudioのシンボル検索結果ウインドウに表示されいている内容をコンソールに出力する
 * 対象のVisualStudioのエラー一覧ウインドウに表示されいている内容をコンソールに出力する
  * Visual Studio 2005以上で有効 
 * 対象のVisualstudioに含まれているファイル名(フルパス)と行数を指定してブレイクポイントを設定する
@@ -59,6 +60,7 @@ https://github.com/taku25/vim-visualstudio
     getoutput           : 出力Windowの中身を取得
     getfindresult1      : 検索結果1を取得
     getfindresult2      : 検索結果2を取得
+    getfindsymbolresult : シンボル検索結果を取得
     geterrorlist        : エラー一覧の取得
     addbreakpoint       : ブレークポイントの追加
     openfile            : ファイルを開く

@@ -21,7 +21,7 @@ namespace VisualStudioController {
             GetOutput,
             GetFindResult1,
             GetFindResult2,
-            GetFindSimbolResult,
+            GetFindSymbolResult,
             GetErrorList,
             OpenFile,
 
@@ -105,7 +105,7 @@ namespace VisualStudioController {
                 }else if (args[0] == "getfindresult2"){
                     commnadType_[(int)CommandType.GetFindResult2] = true;
                 }else if (args[0] == "getfindsymbolresult"){
-                    commnadType_[(int)CommandType.GetFindSimbolResult] = true;
+                    commnadType_[(int)CommandType.GetFindSymbolResult] = true;
                 }else if (args[0] == "getallfile"){
                     commnadType_[(int)CommandType.GetAllFile] = true;
                 }else if (args[0] == "addbreakpoint"){
@@ -164,7 +164,7 @@ namespace VisualStudioController {
         public void ArgsInfo ()
         {
             ConsoleWriter.WriteLine ("Usage: VisualStudioController <commnad> <options> ");
-            ConsoleWriter.WriteLine ("version 0.4");
+            ConsoleWriter.WriteLine ("version 0.7");
             ConsoleWriter.WriteLine ("<commnad>:");
             ConsoleWriter.WriteLine ("build               : ビルド");
             ConsoleWriter.WriteLine ("rebuild             : リビルド");
@@ -180,10 +180,10 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("getoutput           : 出力Windowの中身を取得");
             ConsoleWriter.WriteLine ("getfindresult1      : 検索結果1を取得");
             ConsoleWriter.WriteLine ("getfindresult2      : 検索結果2を取得");
+            ConsoleWriter.WriteLine ("getfindsymbolresult : シンボルの検索結果を取得");
             ConsoleWriter.WriteLine ("geterrorlist        : エラー一覧の取得");
             ConsoleWriter.WriteLine ("addbreakpoint       : ブレークポイントの追加");
             ConsoleWriter.WriteLine ("openfile            : ファイルを開く");
-            //ConsoleWriter.WriteLine ("getfindsimbolresult : シンボルの検索結果を取得");
             ConsoleWriter.WriteLine ("<options>           : ");
             ConsoleWriter.WriteLine ("-h                  : ヘルプの表示");
             ConsoleWriter.WriteLine ("-t                  : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名");
@@ -194,7 +194,6 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("-line               : 行を指定します");
             ConsoleWriter.WriteLine ("-column             : 列を指定します");
             ConsoleWriter.WriteLine ("-debug              : 詳細情報も出力(debug用)");
-            //ConsoleWriter.WriteLine ("-enc                : cp932 utf8(default) コンソール出力を行うエンコード指定");
         }
     }
 }

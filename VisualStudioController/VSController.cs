@@ -97,7 +97,7 @@ namespace VisualStudioController {
                 WriteFindResultWindowText(0);
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindResult2) == true){
                 WriteFindResultWindowText(1);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindSimbolResult) == true){
+            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindSymbolResult) == true){
                 WriteFindSymbolResultWindowText();
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetAllFile) == true){
                 WriteAllFile();
@@ -434,32 +434,41 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine(outputString);
         }
 
+
         public void WriteFindSymbolResultWindowText ()
         {
-            
             Window window = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
-            
             if(window == null){
                 ConsoleWriter.WriteDebugLine("検索結果Windowがみつかりませんでした");
                 return;
             }
             
+            //クリップボードをいじるので退避
+            System.Windows.Forms.IDataObject clipboarData = System.Windows.Forms.Clipboard.GetDataObject();
 
-            //とりかたを模索中
-            //これにもはいっていなかった...
-            //もしかしてerrorとおなじでぜんぜん違う場所にかくのうされているのか？
-            foreach(EnvDTE.ContextAttribute contextAttribute in window.ContextAttributes){
-                if(contextAttribute.Values is object[]){
-                    object[] objectarray = contextAttribute.Values as object[];
-                    if ("FindSymbolResultsWindow" == (objectarray[0] as System.String)){
-                        foreach(EnvDTE.ContextAttribute childContextAttribute in contextAttribute.Collection){
-                        }
+            try{
+                System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("[0-9]+");
+                int resultCount = Convert.ToInt32(regex.Match(window.Caption).Value);
+                for (int i = 0; i < resultCount; i++){
+                    if(i != 0){
+                        window.Activate();
+                        targetDTE_.Application.ExecuteCommand("Edit.GoToNextLocation", String.Empty);
                     }
+                    window.Activate();
+                    targetDTE_.Application.ExecuteCommand("Edit.Copy");
+
+                    ConsoleWriter.WriteLine(System.Windows.Forms.Clipboard.GetText());
                 }
+            }catch{
+         
             }
-            
-            
+
+            try{
+                System.Windows.Forms.Clipboard.SetDataObject(clipboarData);
+            }catch{
+            }
         }
+        
 
         public void WriteErrorWindowText ()
         {

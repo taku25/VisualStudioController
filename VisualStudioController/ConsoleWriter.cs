@@ -18,7 +18,7 @@ namespace VisualStudioController{
 
         static public void WriteDebugLine (System.String cString)
         {
-            WriteLine_ (cString, true);
+            WriteLine_ ("debug:" + cString, true);
         }
 
         static public void WriteLine (System.String cString)
