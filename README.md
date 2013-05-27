@@ -1,5 +1,5 @@
 #VisualStudioController  
-version 2013/5/26  
+version 2013/5/27  
 
 ##説明
 起動中のVisualStudioを外部から操作または情報を取得するコンソールアプリケーション  
@@ -18,7 +18,7 @@ https://github.com/taku25/vim-visualstudio
 * Windows 7 32bit / 64 bit
 
 ##機能
-###version 2013/5/25現在
+###version 2013/5/27現在
 * 対象のVisualStudioで編集中のソリューションをビルドする
 * 対象のVisualStudioで編集中のソリューションをリビルドする
 * 対象のVisualStudioで編集中のソリューションをクリーンする
@@ -29,6 +29,7 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualStudioがビルド中ならビルドをキャンセルする
 * 対象のVisualStudioで編集中のソリューションを実行する
 * 対象のVisualStuidoで編集中のソリューションをデバッグ実行する
+* 対象のVisualStuidoで実行中のデバッグを停止する
 * 対象のVisualStudioで現在編集中ファイルのファイル名(フルパス)をコンソールに出力する
 * 対象のVisualStudioで編集中のソリューションに含まれるファイル名(フルパス)をすべてコンソールに出力する
 * 対象のVisualStudioの出力ウインドウに表示されている内容をコンソールに出力する
@@ -39,6 +40,10 @@ https://github.com/taku25/vim-visualstudio
  * Visual Studio 2005以上で有効 
 * 対象のVisualstudioに含まれているファイル名(フルパス)と行数を指定してブレイクポイントを設定する
 * 対象のVisualstudioで指定したファイルを開く
+* 対象のVisualstudioで開いているソリューションを閉じる
+* 対象のVisualstudioでカレントのビルド構成をコンソールに出力する
+* 対象のVisualstudioで検索を行う
+
 
 
 ##使い方
@@ -54,9 +59,11 @@ https://github.com/taku25/vim-visualstudio
     rebuildproject      : プロジェクトのリビルド  強制的にwaitします
     cleanproject        : プロジェクトのクリーン  強制的にwaitします
     compilefile         : ファイルのコンパイル
-    buildcancel         : ビルドのキャンセル
+    cancelbuild         : ビルドのキャンセル
     run                 : 実行
     debugrun            : デバッグ実行
+    find                : 検索を実行
+    stopdebugrun        : デバッグ実行の停止
     getfile             : 編集中ファイル取得
     getallfile          : 全ファイル名をファイル取得
     getoutput           : 出力Windowの中身を取得
@@ -64,6 +71,7 @@ https://github.com/taku25/vim-visualstudio
     getfindresult2      : 検索結果2を取得
     getfindsymbolresult : シンボル検索結果を取得
     geterrorlist        : エラー一覧の取得
+    getbuildconfig      : ビルド構成の取得
     addbreakpoint       : ブレークポイントの追加
     openfile            : ファイルを開く
     <options>           :
@@ -75,5 +83,12 @@ https://github.com/taku25/vim-visualstudio
     -p                  : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です
     -line               : 行を指定します
     -column             : 列を指定します
+    -findwhat           : 検索文字列の指定
+    -findtarget         : 検索対象設定
+                        : [project カレントプロジェクト(default)]
+                        : [solution ソリューション]
+    -findmatchcase      : 大文字小文字判定有り無し
+                        : [on 判定あり]
+                        : [off 判定なし(default)]
     -debug              : 詳細情報も出力(debug用)
 * 引数なし実行で以上のヘルプを見ることができます
