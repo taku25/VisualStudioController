@@ -58,7 +58,6 @@ namespace VisualStudioController {
             if(targetDTE_ == null && System.String.IsNullOrEmpty(targetName) == false){
                 targetDTE_ = GetDTEFromEditFileName(targetName, dtelist);
             }
-            
 
             if(targetDTE_ == null){
                 ConsoleWriter.WriteDebugLine(@"VisualStudioのプロセスが見つかりません");
@@ -115,8 +114,16 @@ namespace VisualStudioController {
                 OpenFile(argsConvert.FileFullPath);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CompileFile) == true){
                 CompileFile(argsConvert.FileFullPath, argsConvert.IsWait);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.BuildCancel) == true){
-                BuildCancel();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CancelBuild) == true){
+                CancelBuild();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetBuildConfig) == true){
+                WriteBuildConfig();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.StopDebugRun) == true){
+                StopDebugRun(argsConvert.IsWait);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CloseSolution) == true){
+                CloseSolution();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.Find) == true){
+                Find(argsConvert.FindWhat, argsConvert.FindTarget, argsConvert.FindMatchCase, argsConvert.IsWait);
             }
         }
 
@@ -172,6 +179,7 @@ namespace VisualStudioController {
             }
             name = name.ToLower();
             DTE tempDte = null;
+            try{
             //最初に完全一致かどうか
             foreach(DTE dte in dtelist){
                 System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
@@ -190,6 +198,8 @@ namespace VisualStudioController {
                         break;
                     }
                 }
+            }
+            }catch{
             }
             return tempDte;
         }
@@ -388,7 +398,7 @@ namespace VisualStudioController {
             }
         }
 
-        public void BuildCancel()
+        public void CancelBuild()
         {
             while(true){
                 try{
@@ -511,6 +521,63 @@ namespace VisualStudioController {
 
                 ConsoleWriter.WriteLine(item.FileName + " " + lineAndCol + ": "  + item.Description);
             }
+        }
+
+
+        public void WriteBuildConfig ()
+        {
+            
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
+                return;
+            }
+
+            if(targetDTE2_.ToolWindows.ErrorList == null){
+                ConsoleWriter.WriteDebugLine("ErrorListがみつかりません");
+                return;
+            }
+
+            EnvDTE80.SolutionConfiguration2 config = targetDTE2_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
+            ConsoleWriter.WriteLine(config.Name + "/" + config.PlatformName);
+        }
+
+        public void StopDebugRun(bool wait)
+        {
+            while(true){
+                try{
+                    if(targetDTE_.Debugger.CurrentMode != dbgDebugMode.dbgDesignMode){
+                        targetDTE_.Debugger.Stop(wait);
+                    }else{
+                        break;
+                    }
+                }catch{
+                }
+            }
+        }
+
+        public void CloseSolution()
+        {
+            targetDTE_.Solution.Close();
+        }
+
+        public void Find(System.String findWhat, ArgsConvert.FindTargetType findTarget, bool findMatchCase, bool wait)
+        {
+            targetDTE2_.Find.Action = vsFindAction.vsFindActionFindAll;
+            targetDTE2_.Find.FindWhat = findWhat;
+            targetDTE2_.Find.MatchCase = findMatchCase;
+            targetDTE2_.Find.Target = (findTarget == ArgsConvert.FindTargetType.Project) ? vsFindTarget.vsFindTargetCurrentProject : vsFindTarget.vsFindTargetSolution;
+
+            if(wait == true){
+                while((targetDTE2_.Find.Execute() == vsFindResult.vsFindResultPending)){
+                }
+            }else{
+                targetDTE2_.Find.Execute();
+            }
+            /*
+            //↓C#も左から条件判定だっけ？ あやしいのでやめる
+            while((targetDTE2_.Find.Execute() != vsFindResult.vsFindResultPending) && wait == true){
+            }
+            */
         }
     }
 }

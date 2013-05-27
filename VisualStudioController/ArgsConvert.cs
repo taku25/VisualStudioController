@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace VisualStudioController {
-	public class ArgsConvert {
+    public class ArgsConvert {
 
-		public enum CommandType
-		{
+        public enum CommandType
+        {
             Build = 0,
             ReBuild,
             Clean,
@@ -14,9 +14,11 @@ namespace VisualStudioController {
             ReBuildProject,
             CleanProject,
             CompileFile,
-            BuildCancel,
+            CancelBuild,
             Run,
             DebugRun,
+            StopDebugRun,
+            Find,
             GetFile,
             GetAllFile,
             GetOutput,
@@ -24,11 +26,19 @@ namespace VisualStudioController {
             GetFindResult2,
             GetFindSymbolResult,
             GetErrorList,
+            GetBuildConfig,
             OpenFile,
-
+            CloseSolution,
             AddBreakPoint,
             kMax,
-		};
+        };
+        
+        public enum FindTargetType
+        {
+            Project = 0,
+            Solution,
+            kMax,
+        };
 
         public ArgsConvert ()
         {
@@ -45,6 +55,10 @@ namespace VisualStudioController {
         private int line_ = 1;
         private int column_ = 1;
         private bool showHelp_ = false;
+        private System.String findWhat_ = "";
+        private FindTargetType findTarget_ = FindTargetType.Project;
+        private bool findMatchCase_ = false;
+
         public bool Commnad (CommandType commandType)
         {
             return commnadType_[(int)commandType];
@@ -54,6 +68,10 @@ namespace VisualStudioController {
         public bool IsWait { get { return isWait_; } }
         public System.String FileFullPath { get { return fileFullPath_; } }
         public System.String TargetProjectName { get { return targetProjectName_; } }
+
+        public System.String FindWhat { get { return findWhat_; } }
+        public FindTargetType FindTarget { get { return findTarget_; } }
+        public bool FindMatchCase { get { return findMatchCase_; } }
 
         public int Line { get { return line_; } }
         public int Column { get { return column_; } }
@@ -115,10 +133,18 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.GetErrorList] = true;
                 }else if (args[0] == "openfile"){
                     commnadType_[(int)CommandType.OpenFile] = true;
-                }else if (args[0] == "buildcancel"){
-                    commnadType_[(int)CommandType.BuildCancel] = true;
+                }else if (args[0] == "cancelbuild"){
+                    commnadType_[(int)CommandType.CancelBuild] = true;
+                }else if (args[0] == "getbuildconfig"){
+                    commnadType_[(int)CommandType.GetBuildConfig] = true;
+                }else if (args[0] == "closesolution"){
+                    commnadType_[(int)CommandType.CloseSolution] = true;
+                }else if (args[0] == "stopdebugrun"){
+                    commnadType_[(int)CommandType.StopDebugRun] = true;
+                }else if (args[0] == "find"){
+                    commnadType_[(int)CommandType.Find] = true;
                 }
-            
+
                 for(int i = 1; i < args.Length; i++){
                     if(args[i].ToLower() == "-t"){
                         targetName_ = args[i + 1];
@@ -138,9 +164,21 @@ namespace VisualStudioController {
                         i+=1;
                     }else if (args[i].ToLower () == "-h"){
                         showHelp_ = true;
-                    }else if (args[i].ToLower() == "-p")
-                    {
+                    }else if (args[i].ToLower() == "-p"){
                         this.targetProjectName_ = args[i + 1];
+                        i+=1; 
+                    }else if (args[i].ToLower() == "-findwhat"){
+                        findWhat_ = args[i + 1];
+                        i+=1; 
+                    }else if (args[i].ToLower() == "-findtarget"){
+                        if(args[i + 1] == "solution"){
+                            findTarget_ = FindTargetType.Solution;
+                        }
+                        i+=1; 
+                    }else if (args[i].ToLower() == "-findmatchcase"){
+                        if(args[i + 1] == "on"){
+                            findMatchCase_ = true;
+                        }
                         i+=1; 
                     }
                 }
@@ -168,7 +206,7 @@ namespace VisualStudioController {
         {
             
             ConsoleWriter.WriteLine ("Usage: VisualStudioController <commnad> <options> ");
-            ConsoleWriter.WriteLine ("version 0.7");
+            ConsoleWriter.WriteLine ("version 2013/5/27");
             ConsoleWriter.WriteLine ("<commnad>:");
             ConsoleWriter.WriteLine ("build               : ビルド");
             ConsoleWriter.WriteLine ("rebuild             : リビルド");
@@ -177,9 +215,11 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("rebuildproject      : プロジェクトのリビルド  強制的にwaitします");
             ConsoleWriter.WriteLine ("cleanproject        : プロジェクトのクリーン  強制的にwaitします");
             ConsoleWriter.WriteLine ("compilefile         : ファイルのコンパイル");
-            ConsoleWriter.WriteLine ("buildcancel         : ビルドのキャンセル");
+            ConsoleWriter.WriteLine ("cancelbuild         : ビルドのキャンセル");
             ConsoleWriter.WriteLine ("run                 : 実行");
             ConsoleWriter.WriteLine ("debugrun            : デバッグ実行");
+            ConsoleWriter.WriteLine ("find                : 検索");
+            ConsoleWriter.WriteLine ("stopdebugrun        : 実行のストップ");
             ConsoleWriter.WriteLine ("getfile             : 編集中ファイル取得" );
             ConsoleWriter.WriteLine ("getallfile          : 全ファイル名をファイル取得" );
             ConsoleWriter.WriteLine ("getoutput           : 出力Windowの中身を取得");
@@ -187,8 +227,10 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("getfindresult2      : 検索結果2を取得");
             ConsoleWriter.WriteLine ("getfindsymbolresult : シンボルの検索結果を取得");
             ConsoleWriter.WriteLine ("geterrorlist        : エラー一覧の取得");
+            ConsoleWriter.WriteLine ("getbuildconfig      : 現在のビルド構成を取得");
             ConsoleWriter.WriteLine ("addbreakpoint       : ブレークポイントの追加");
             ConsoleWriter.WriteLine ("openfile            : ファイルを開く");
+            ConsoleWriter.WriteLine ("closesolution       : ソリューションを閉じる");
             ConsoleWriter.WriteLine ("<options>           : ");
             ConsoleWriter.WriteLine ("-h                  : ヘルプの表示");
             ConsoleWriter.WriteLine ("-t                  : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名");
@@ -198,6 +240,13 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("-p                  : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です");
             ConsoleWriter.WriteLine ("-line               : 行を指定します");
             ConsoleWriter.WriteLine ("-column             : 列を指定します");
+            ConsoleWriter.WriteLine ("-findwhat           : 検索文字列の指定");
+            ConsoleWriter.WriteLine ("-findtarget         : 検索対象設定");
+            ConsoleWriter.WriteLine ("                    : [project カレントプロジェクト(default)]");
+            ConsoleWriter.WriteLine ("                    : [solution ソリューション]");
+            ConsoleWriter.WriteLine ("-findmatchcase      : 大文字小文字判定有り無し");
+            ConsoleWriter.WriteLine ("                    : [on 判定あり]");
+            ConsoleWriter.WriteLine ("                    : [off 判定なし(default)]");
             ConsoleWriter.WriteLine ("-debug              : 詳細情報も出力(debug用)");
         }
     }
