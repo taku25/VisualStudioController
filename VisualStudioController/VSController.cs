@@ -562,6 +562,12 @@ namespace VisualStudioController {
 
         public void Find(System.String findWhat, ArgsConvert.FindTargetType findTarget, bool findMatchCase, bool wait)
         {
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
+                return;
+            }
+
+
             targetDTE2_.Find.Action = vsFindAction.vsFindActionFindAll;
             targetDTE2_.Find.FindWhat = findWhat;
             targetDTE2_.Find.MatchCase = findMatchCase;
