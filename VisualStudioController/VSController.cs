@@ -45,12 +45,13 @@ namespace VisualStudioController {
         
 #region めんば
         static private System.String VisualStudioProcessName = @"!VisualStudio.DTE";
-        DTE targetDTE_;
-        EnvDTE80.DTE2 targetDTE2_; //2005以上
-
+        DTE targetDTE_ = null;
+        EnvDTE80.DTE2 targetDTE2_ = null; //2005以上
+        EnvDTE.Project targetProject_ = null;
+        System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList_ = new System.Collections.Generic.List<ProjectBuildInfo>();
 #endregion
 
-        public bool Initialize(System.String targetName)
+        public bool Initialize(System.String targetName, System.String projectName = null)
         {
             System.Collections.Generic.List<DTE> dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
             
@@ -65,19 +66,21 @@ namespace VisualStudioController {
             //error一覧とかがほしいので一応これももっておく
             targetDTE2_ = targetDTE_ as EnvDTE80.DTE2;
 
+
+            if(System.String.IsNullOrEmpty(projectName) == false){
+                targetProject_ = GetProject(projectName);
+                projectBuildInfoList_ = CreateProjectBuildInfoList();
+                ConsoleWriter.WriteDebugLine(@"対象のプロジェクトが見つかりません");
+            }
+
+
             return targetDTE_ != null;
         }
 
         //この引数めっちゃきもちわるいなぁ〜 さてどうすっかなぁ〜..
         public void Run (ArgsConvert argsConvert)
         {
-            EnvDTE.Project targetProject = null;
-            System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList = null;
-            if(System.String.IsNullOrEmpty(argsConvert.TargetProjectName) == false){
-                targetProject = GetProject(argsConvert.TargetProjectName);
-                projectBuildInfoList = CreateProjectBuildInfoList();
 
-            }
             if(argsConvert.Commnad(ArgsConvert.CommandType.Build) == true){
                 BuildSolution(false, argsConvert.IsWait);
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.ReBuild) == true){
@@ -105,11 +108,11 @@ namespace VisualStudioController {
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetErrorList) == true){
                 WriteErrorWindowText();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.BuildProject) == true){
-                BuildProject(false, targetProject, projectBuildInfoList);
+                BuildProject(false);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.ReBuildProject) == true){
-                BuildProject(true, targetProject, projectBuildInfoList);
+                BuildProject(true);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CleanProject) == true){
-                CleanProject(targetProject, projectBuildInfoList);
+                CleanProject();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.OpenFile) == true){
                 OpenFile(argsConvert.FileFullPath);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CompileFile) == true){
@@ -124,6 +127,8 @@ namespace VisualStudioController {
                 CloseSolution();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.Find) == true){
                 Find(argsConvert.FindWhat, argsConvert.FindTarget, argsConvert.FindMatchCase, argsConvert.IsWait);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.AddFile) == true){
+                AddFile(argsConvert.FileFullPath);
             }
         }
 
@@ -302,7 +307,6 @@ namespace VisualStudioController {
             return projectBuildInfoList;
         }
 
-        //本当は名前込みでちゃんと戻さないといけないんだろうなぁ～...
         private void RestoreProjectBuildInfo(System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
         {
             foreach (ProjectBuildInfo projectInfo in projectBuildInfoList){
@@ -315,15 +319,10 @@ namespace VisualStudioController {
             }
         }
 
-        public void BuildProject(bool rebuild, EnvDTE.Project project, System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
+        public void BuildProject(bool rebuild)
         {
-
-            if(projectBuildInfoList == null){
-                projectBuildInfoList = CreateProjectBuildInfoList();
-            }
-
             foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
-                if (context.ProjectName == project.UniqueName){
+                if (context.ProjectName == targetProject_.UniqueName){
                     context.ShouldBuild = true;
                 }else{
                     context.ShouldBuild = false;
@@ -331,23 +330,18 @@ namespace VisualStudioController {
             }
    
             if(rebuild == true){
-                CleanProject(project, projectBuildInfoList);
+                CleanProject();
             }
 
             targetDTE_.Solution.SolutionBuild.Build(true);
 
-            RestoreProjectBuildInfo(projectBuildInfoList);
-            
+            RestoreProjectBuildInfo(projectBuildInfoList_);    
         }
 
-        public void CleanProject(EnvDTE.Project project, System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
+        public void CleanProject()
         {
-            if(projectBuildInfoList == null){
-                projectBuildInfoList = CreateProjectBuildInfoList();
-            }
-
             foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
-                if (context.ProjectName == project.UniqueName){
+                if (context.ProjectName == targetProject_.UniqueName){
                     context.ShouldBuild = true;
                 }else{
                     context.ShouldBuild = false;
@@ -356,7 +350,7 @@ namespace VisualStudioController {
 
             targetDTE_.Solution.SolutionBuild.Clean(true);
 
-            RestoreProjectBuildInfo(projectBuildInfoList);
+            RestoreProjectBuildInfo(projectBuildInfoList_);
         }
 
 
@@ -437,6 +431,7 @@ namespace VisualStudioController {
         {
             OutputWindow outputWindow = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindOutput).Object as OutputWindow;
             EnvDTE.TextDocument textDocument = outputWindow.ActivePane.TextDocument;
+          
             textDocument.Selection.SelectAll();
             System.String outputString = textDocument.Selection.Text;
             ConsoleWriter.WriteLine(outputString);
@@ -585,6 +580,22 @@ namespace VisualStudioController {
             }
             */
         }
+
+        void AddFile(System.String addFileName)
+        {
+            if(targetProject_ == null){
+                ConsoleWriter.WriteDebugLine("対象のプロジェクトが見つかりませんでした");
+                return;
+            }
+
+            EnvDTE.ProjectItem projectItem = targetProject_.ProjectItems.AddFromFile(addFileName);
+            if(projectItem == null){
+                ConsoleWriter.WriteDebugLine("追加失敗");
+                return;
+            }
+            this.OpenFile(projectItem.FileNames[0]);
+        }
+ 
     }
 }
 
