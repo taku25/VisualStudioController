@@ -1,5 +1,5 @@
 #VisualStudioController  
-version 2013/5/27  
+version 2013/06/01  
 
 ##説明
 起動中のVisualStudioを外部から操作または情報を取得するコンソールアプリケーション  
@@ -18,7 +18,7 @@ https://github.com/taku25/vim-visualstudio
 * Windows 7 32bit / 64 bit
 
 ##機能
-###version 2013/5/27現在
+###version 2013/06/01現在
 * 対象のVisualStudioで編集中のソリューションをビルドする
 * 対象のVisualStudioで編集中のソリューションをリビルドする
 * 対象のVisualStudioで編集中のソリューションをクリーンする
@@ -26,6 +26,7 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualStudioで編集中の指定したプロジェクトのみをリビルドする
 * 対象のVisualStudioで編集中の指定したプロジェクトのみをクリーンする
 * 対象のVisualStudioで編集中の指定したファイルのみをコンパイルする
+* 対象のVisualstudioで編集中の指定したプロジェクトにファイルを追加する
 * 対象のVisualStudioがビルド中ならビルドをキャンセルする
 * 対象のVisualStudioで編集中のソリューションを実行する
 * 対象のVisualStuidoで編集中のソリューションをデバッグ実行する
@@ -43,52 +44,54 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualstudioで開いているソリューションを閉じる
 * 対象のVisualstudioでカレントのビルド構成をコンソールに出力する
 * 対象のVisualstudioで検索を行う
-
-
+ * Visual Studio 2005以上で有効 
 
 ##使い方
     $ VisualStudioContoller.exe builld -t mysolution
 
 ##引数 & 説明
-    Usage: VisualStudioController <commnad> <options>                    
+    Usage: VisualStudioController <commnad> <options> 
+    version 2013/5/27
     <commnad>
-    build               : ビルド
-    rebuild             : リビルド
-    clean               : クリーン
-    buildproject        : プロジェクトのビルド  強制的にwaitします
-    rebuildproject      : プロジェクトのリビルド  強制的にwaitします
-    cleanproject        : プロジェクトのクリーン  強制的にwaitします
-    compilefile         : ファイルのコンパイル
-    cancelbuild         : ビルドのキャンセル
-    run                 : 実行
-    debugrun            : デバッグ実行
-    find                : 検索を実行
-    stopdebugrun        : デバッグ実行の停止
-    getfile             : 編集中ファイル取得
-    getallfile          : 全ファイル名をファイル取得
-    getoutput           : 出力Windowの中身を取得
-    getfindresult1      : 検索結果1を取得
-    getfindresult2      : 検索結果2を取得
-    getfindsymbolresult : シンボル検索結果を取得
-    geterrorlist        : エラー一覧の取得
-    getbuildconfig      : ビルド構成の取得
-    addbreakpoint       : ブレークポイントの追加
-    openfile            : ファイルを開く
-    <options>           :
-    -h                  : ヘルプの表示
-    -t                  : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名
-                        : SolutionName(name)で指定する場合 名前の先頭一部でも有効です
-    -w                  : 終わるまで待つ(build and rebuild時に有効)
-    -f                  : 対象のソースファイル名(FullPath)を指定します. また-fに何も設定されていなかった場合かつ-tにSourceFilePathを設定していた場合はそれを使います
-    -p                  : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です
-    -line               : 行を指定します
-    -column             : 列を指定します
-    -findwhat           : 検索文字列の指定
-    -findtarget         : 検索対象設定
-                        : [project カレントプロジェクト(default)]
-                        : [solution ソリューション]
-    -findmatchcase      : 大文字小文字判定有り無し
-                        : [on 判定あり]
-                        : [off 判定なし(default)]
-    -debug              : 詳細情報も出力(debug用)
-* 引数なし実行で以上のヘルプを見ることができます
+    build                       : ビルド
+    rebuild                     : リビルド
+    clean                       : クリーン
+    buildproject                : プロジェクトのビルド  強制的にwaitします
+    rebuildproject              : プロジェクトのリビルド  強制的にwaitします
+    cleanproject                : プロジェクトのクリーン  強制的にwaitします
+    compilefile                 : ファイルのコンパイル
+    cancelbuild                 : ビルドのキャンセル
+    run                         : 実行
+    debugrun                    : デバッグ実行
+    stopdebugrun                : 実行のストップ
+    find                        : 検索
+    addfile                     : 対象のプロジェクトに既存ファイルを追加
+    addbreakpoint               : ブレークポイントの追加
+    openfile                    : ファイルを開く
+    closesolution               : ソリューションを閉じる           
+    getfile                     : 編集中ファイル取得" );
+    getallfile                  : 全ファイル名をファイル取得" );
+    getoutput                   : 出力Windowの中身を取得
+    getfindresult1              : 検索結果1を取得
+    getfindresult2              : 検索結果2を取得
+    getfindsymbolresult         : シンボルの検索結果を取得
+    geterrorlist                : エラー一覧の取得
+    getbuildconfig              : 現在のビルド構成を取得
+    
+    <options>
+    -[h]elp                     : ヘルプの表示
+    -[t]arget                   : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名
+                                : SolutionName(name)で指定する場合 名前の先頭一部でも有効です
+    -[w]ait                     : 終わるまで待つ(build and rebuild時に有効)
+    -[f]ile                     : 対象のソースファイル名(FullPath)を指定します. また-fに何も設定されていなかった場合かつ-tにSourceFilePathを設定していた場合はそれを使います
+    -[p]roj                     : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です
+    -[l]ine                     : 行を指定します
+    -[c]olumn                   : 列を指定します
+    -findwhat[fw]               : 検索文字列の指定
+    -findtarget[ft]             : 検索対象設定
+                                : [project カレントプロジェクト(default)]
+                                : [solution ソリューション]
+    -enablefindmatchcase[efm]   : 大文字小文字判定有り無し
+                                : [default 判定なし]
+    -debugwrite[dw]             : 詳細情報も出力(debug用)
+* 引数なし か helpオプションで上記のヘルプを見ることができます
