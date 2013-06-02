@@ -20,13 +20,17 @@ namespace VisualStudioController {
             StopDebugRun,
             Find,
             GetFile,
-            GetAllFile,
+            GetAllFiles,
             GetOutput,
             GetFindResult1,
             GetFindResult2,
             GetFindSymbolResult,
             GetErrorList,
             GetBuildConfig,
+            GetProjectName,
+            GetCurrnetProjectName,
+            GetStartUpProjectName,
+            GetSolutionName,
             OpenFile,
             CloseSolution,
             AddBreakPoint,
@@ -126,8 +130,8 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.GetFindResult2] = true;
                 }else if (args[0] == "getfindsymbolresult"){
                     commnadType_[(int)CommandType.GetFindSymbolResult] = true;
-                }else if (args[0] == "getallfile"){
-                    commnadType_[(int)CommandType.GetAllFile] = true;
+                }else if (args[0] == "getallfiles"){
+                    commnadType_[(int)CommandType.GetAllFiles] = true;
                 }else if (args[0] == "addbreakpoint"){
                     commnadType_[(int)CommandType.AddBreakPoint] = true;
                 }else if (args[0] == "geterrorlist"){
@@ -146,8 +150,18 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.Find] = true;
                 }else if (args[0] == "addfile"){
                     commnadType_[(int)CommandType.AddFile] = true;
+                }else if (args[0] == "getprojectname"){
+                    commnadType_[(int)CommandType.GetProjectName] = true;
+                }else if (args[0] == "getcurrentprojectname"){
+                    commnadType_[(int)CommandType.GetCurrnetProjectName] = true;
+                }else if (args[0] == "getsolutionname"){
+                    commnadType_[(int)CommandType.GetSolutionName] = true;
+                }else if (args[0] == "getstartupprojectname"){
+                    commnadType_[(int)CommandType.GetStartUpProjectName] = true;
                 }
 
+                
+                
                 for(int i = 1; i < args.Length; i++){
                     if(args[i].ToLower() == "-target" || args[i].ToLower() == "-t"){
                         targetName_ = args[i + 1];
@@ -206,7 +220,7 @@ namespace VisualStudioController {
         {
             
             ConsoleWriter.WriteLine ("Usage: VisualStudioController <commnad> <options> ");
-            ConsoleWriter.WriteLine ("version 2013/5/27");
+            ConsoleWriter.WriteLine ("version 2013/06/01");
             ConsoleWriter.WriteLine ("<commnad>");
             ConsoleWriter.WriteLine ("build                       : ビルド");
             ConsoleWriter.WriteLine ("rebuild                     : リビルド");
@@ -224,18 +238,22 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("addbreakpoint               : ブレークポイントの追加");
             ConsoleWriter.WriteLine ("openfile                    : ファイルを開く");
             ConsoleWriter.WriteLine ("closesolution               : ソリューションを閉じる");           
-            ConsoleWriter.WriteLine ("getfile                     : 編集中ファイル取得" );
-            ConsoleWriter.WriteLine ("getallfile                  : 全ファイル名をファイル取得" );
+            ConsoleWriter.WriteLine ("getfile                     : 編集中ファイル取得");
+            ConsoleWriter.WriteLine ("getallfiles                 : 全ファイル名をファイル取得");
             ConsoleWriter.WriteLine ("getoutput                   : 出力Windowの中身を取得");
             ConsoleWriter.WriteLine ("getfindresult1              : 検索結果1を取得");
             ConsoleWriter.WriteLine ("getfindresult2              : 検索結果2を取得");
             ConsoleWriter.WriteLine ("getfindsymbolresult         : シンボルの検索結果を取得");
             ConsoleWriter.WriteLine ("geterrorlist                : エラー一覧の取得");
             ConsoleWriter.WriteLine ("getbuildconfig              : 現在のビルド構成を取得");
+            ConsoleWriter.WriteLine ("getprojectname              : 対象のファイルが含まれているプロジェクト名を取得");
+            ConsoleWriter.WriteLine ("getcurrentprojectname       : カレントプロジェクト名を取得");
+            ConsoleWriter.WriteLine ("getstartupprojectname       : スタートアッププロジェクト名を取得");
+            ConsoleWriter.WriteLine ("getsolutionname             : 対象のファイルorプロジェクトが含まれているプロジェクト名を取得");
             ConsoleWriter.WriteLine ("<options>");
             ConsoleWriter.WriteLine ("-[h]elp                     : ヘルプの表示");
-            ConsoleWriter.WriteLine ("-[t]arget                   : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名");
-            ConsoleWriter.WriteLine ("                            : SolutionName(name)で指定する場合 名前の先頭一部でも有効です");
+            ConsoleWriter.WriteLine ("-[t]arget                   : [SourceFilePath(fullpath) or ProjectName(name) or SolutionName(name)] ソリューション名、プロジェクト名かソリューションに含まれているソースファイル名");
+            ConsoleWriter.WriteLine ("                            : SolutionName(name) or ProjectName(name)で指定する場合 名前の先頭一部でも有効です");
             ConsoleWriter.WriteLine ("-[w]ait                     : 終わるまで待つ(build and rebuild時に有効)");
             ConsoleWriter.WriteLine ("-[f]ile                     : 対象のソースファイル名(FullPath)を指定します. また-fに何も設定されていなかった場合かつ-tにSourceFilePathを設定していた場合はそれを使います");
             ConsoleWriter.WriteLine ("-[p]roj                     : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です");

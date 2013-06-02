@@ -13,8 +13,7 @@ https://github.com/taku25/vim-visualstudio
 
 ##動作確認
 * Visual Studio 2010 / 2012  
- * EnvDTEを使用しているので2005以降なら動作するかもしれません  
- * Microsoft Visual Studio Express には非対応です
+ * EnvDTEを使用しているのでMicrosoft Visual Studio Express には非対応です
 * Windows 7 32bit / 64 bit
 
 ##機能
@@ -37,21 +36,23 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualStudioの検索結果ウインドウ1に表示されいている内容をコンソールに出力する
 * 対象のVisualStudioの検索結果ウインドウ2に表示されいている内容をコンソールに出力する
 * 対象のVisualStudioのシンボル検索結果ウインドウに表示されいている内容をコンソールに出力する
-* 対象のVisualStudioのエラー一覧ウインドウに表示されいている内容をコンソールに出力する
- * Visual Studio 2005以上で有効 
 * 対象のVisualstudioに含まれているファイル名(フルパス)と行数を指定してブレイクポイントを設定する
 * 対象のVisualstudioで指定したファイルを開く
 * 対象のVisualstudioで開いているソリューションを閉じる
 * 対象のVisualstudioでカレントのビルド構成をコンソールに出力する
-* 対象のVisualstudioで検索を行う
- * Visual Studio 2005以上で有効 
+* 対象のVisualStudioで編集中のソリューション名をコンソールに出力する
+* 対象のVisualStudioで編集中のソリューションでスタートアッププロジェクトに設定されているプロジェクト名をコンソールに出力する
+* Visual Studio 2005以上で有効 
+ * 対象のVisualstudioで検索を行う
+ * 対象のVisualStudioのエラー一覧ウインドウに表示されいている内容をコンソールに出力する
+ * 対象のVisualStudioでカレントのプロジェクト名をコンソールに出力する
 
 ##使い方
     $ VisualStudioContoller.exe builld -t mysolution
 
 ##引数 & 説明
     Usage: VisualStudioController <commnad> <options> 
-    version 2013/5/27
+    version 2013/06/01
     <commnad>
     build                       : ビルド
     rebuild                     : リビルド
@@ -69,19 +70,22 @@ https://github.com/taku25/vim-visualstudio
     addbreakpoint               : ブレークポイントの追加
     openfile                    : ファイルを開く
     closesolution               : ソリューションを閉じる           
-    getfile                     : 編集中ファイル取得" );
-    getallfile                  : 全ファイル名をファイル取得" );
+    getfile                     : 編集中ファイル取得
+    getallfiles                 : 全ファイル名をファイル取得
     getoutput                   : 出力Windowの中身を取得
     getfindresult1              : 検索結果1を取得
     getfindresult2              : 検索結果2を取得
     getfindsymbolresult         : シンボルの検索結果を取得
     geterrorlist                : エラー一覧の取得
     getbuildconfig              : 現在のビルド構成を取得
-    
+    getprojectname              : 対象のファイルが含まれているプロジェクト名を取得
+    getcurrentprojectname       : カレントプロジェクト名を取得
+    getstartupprojectname       : スタートアッププロジェクト名を取得
+    getsolutionname             : 対象のファイルorプロジェクトが含まれているプロジェクト名を取得
     <options>
     -[h]elp                     : ヘルプの表示
-    -[t]arget                   : [-t SourceFilePath(fullpath) or -t SolutionName(name)] ターゲットソリューション名 か ターゲットソリューションに含まれているソースファイル名
-                                : SolutionName(name)で指定する場合 名前の先頭一部でも有効です
+    -[t]arget                   : [SourceFilePath(fullpath) or ProjectName(name) or SolutionName(name)] ソリューション名、プロジェクト名かソリューションに含まれているソースファイル名
+                                : SolutionName(name) or ProjectName(name)で指定する場合 名前の先頭一部でも有効です
     -[w]ait                     : 終わるまで待つ(build and rebuild時に有効)
     -[f]ile                     : 対象のソースファイル名(FullPath)を指定します. また-fに何も設定されていなかった場合かつ-tにSourceFilePathを設定していた場合はそれを使います
     -[p]roj                     : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です
@@ -94,4 +98,5 @@ https://github.com/taku25/vim-visualstudio
     -enablefindmatchcase[efm]   : 大文字小文字判定有り無し
                                 : [default 判定なし]
     -debugwrite[dw]             : 詳細情報も出力(debug用)
+
 * 引数なし か helpオプションで上記のヘルプを見ることができます

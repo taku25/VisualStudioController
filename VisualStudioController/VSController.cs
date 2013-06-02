@@ -55,9 +55,14 @@ namespace VisualStudioController {
         {
             System.Collections.Generic.List<DTE> dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
             
-            targetDTE_ = GetDTEFromSolutionName(targetName, dtelist);
-            if(targetDTE_ == null && System.String.IsNullOrEmpty(targetName) == false){
-                targetDTE_ = GetDTEFromEditFileName(targetName, dtelist);
+
+            if(System.String.IsNullOrEmpty(System.IO.Path.GetExtension(targetName)) == true){
+                targetDTE_ = GetDTEFromSolutionName(targetName, dtelist);
+                if(targetDTE_ == null){
+                    targetDTE_ = GetDTEFromProjectName(targetName, dtelist);
+                }
+            }else{
+                targetDTE_ = GetDTEFromItemFileFullPathName(targetName, dtelist);
             }
 
             if(targetDTE_ == null){
@@ -68,7 +73,7 @@ namespace VisualStudioController {
 
 
             if(System.String.IsNullOrEmpty(projectName) == false){
-                targetProject_ = GetProject(projectName);
+                targetProject_ = GetProjectFromName(projectName);
                 projectBuildInfoList_ = CreateProjectBuildInfoList();
                 ConsoleWriter.WriteDebugLine(@"対象のプロジェクトが見つかりません");
             }
@@ -101,8 +106,8 @@ namespace VisualStudioController {
                 WriteFindResultWindowText(1);
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindSymbolResult) == true){
                 WriteFindSymbolResultWindowText();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetAllFile) == true){
-                WriteAllFile();
+            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetAllFiles) == true){
+                WriteAllFiles();
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.AddBreakPoint) == true){
                 AddBreakPoint(argsConvert.FileFullPath, argsConvert.Line, argsConvert.Column);
             }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetErrorList) == true){
@@ -129,11 +134,19 @@ namespace VisualStudioController {
                 Find(argsConvert.FindWhat, argsConvert.FindTarget, argsConvert.FindMatchCase, argsConvert.IsWait);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.AddFile) == true){
                 AddFile(argsConvert.FileFullPath);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetProjectName) == true){
+                WriteProjectName(argsConvert.FileFullPath);
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetCurrnetProjectName) == true){
+                WriteCurrentProjectName();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetStartUpProjectName) == true){
+                WriteStartUpProjectName();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionName) == true){
+                WriteSolutionName();
             }
         }
 
 
-        private bool _getDTEFromEditFileName (String name, ProjectItem item)
+        private bool _getDTEFromItemFileFullPathName (String name, ProjectItem item)
         {
             if(item.Kind == Constants.vsProjectItemKindPhysicalFile){
                 if(item.FileNames[0].ToLower() == name){
@@ -141,7 +154,7 @@ namespace VisualStudioController {
                 }
             }else{
                 foreach (ProjectItem childItem in item.ProjectItems){
-                    if(_getDTEFromEditFileName(name, childItem) == true){
+                    if(_getDTEFromItemFileFullPathName(name, childItem) == true){
                         return true;
                     }
                 }
@@ -149,26 +162,72 @@ namespace VisualStudioController {
             return false;
         }
 
-        private DTE GetDTEFromEditFileName(String name, System.Collections.Generic.List<DTE> dtelist = null)
+        public EnvDTE.Project GetProjectFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
+        { 
+            for(int i = 0; i < dte.Solution.Projects.Count; i++){
+                Project project = dte.Solution.Projects.Item(i + 1);
+                foreach (ProjectItem item in project.ProjectItems){
+                    if(_getDTEFromItemFileFullPathName (itemFullPathName, item) == true){
+                        return project;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private DTE GetDTEFromItemFileFullPathName(String name, System.Collections.Generic.List<DTE> dtelist = null)
         {
             name = name.ToLower();
             if(dtelist == null){
                 dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
             }
             foreach(DTE dte in dtelist){
-                //foreachがうまくうごかん...
-                for(int i = 0; i < dte.Solution.Projects.Count; i++){
-                    Project project = dte.Solution.Projects.Item(i + 1);
-                    //foreach (Project project in dte.Solution.Projects){
-                        foreach (ProjectItem item in project.ProjectItems){
-                            if(_getDTEFromEditFileName (name, item) == true){
-                                return dte;
-                            }
-                        }
-                    //}
+                if(GetProjectFromItemFullPathName(name, dte) != null){
+                    return dte;
                 }
             }
             return null;
+        }
+
+        private DTE GetDTEFromProjectName(String name, System.Collections.Generic.List<DTE> dtelist = null)
+        {
+            name = name.ToLower();
+            if(dtelist == null){
+                dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
+            }
+            
+            name = name.ToLower();
+            DTE tempDte = null;
+            try{
+            //最初に完全一致かどうか
+            foreach(DTE dte in dtelist){
+                System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
+                //foreachがうまくいかないので
+                for(int i = 0; i < dte.Solution.Projects.Count; i++){
+                    Project project = dte.Solution.Projects.Item(i + 1);
+                    if(project.Name.ToLower() == name){
+                        tempDte = dte;
+                        break;
+                    }
+                }
+            }
+
+            if(tempDte  == null){
+                //先頭から一部分のひかくでもokにする
+                foreach(DTE dte in dtelist){
+                    for(int i = 0; i < dte.Solution.Projects.Count; i++){
+                        Project project = dte.Solution.Projects.Item(i + 1);
+                        if(project.Name.ToLower().IndexOf(name) == 0){
+                            tempDte = dte;
+                            break;
+                        }
+                    }
+                }
+            }
+            }catch{
+            }
+
+            return tempDte;
         }
 
         private DTE GetDTEFromSolutionName(String name, System.Collections.Generic.List<DTE> dtelist = null)
@@ -275,7 +334,7 @@ namespace VisualStudioController {
             targetDTE_.Solution.SolutionBuild.Debug();
         }
 
-        public EnvDTE.Project GetProject(System.String projectName)
+        public EnvDTE.Project GetProjectFromName(System.String projectName)
         {
             EnvDTE.Project tempProject = null;
             projectName = projectName.ToLower();
@@ -296,6 +355,8 @@ namespace VisualStudioController {
             }
             return tempProject;
         }
+
+
 
         //
         private System.Collections.Generic.List<ProjectBuildInfo> CreateProjectBuildInfoList()
@@ -417,7 +478,7 @@ namespace VisualStudioController {
             }
         }
 
-        public void WriteAllFile()
+        public void WriteAllFiles()
         {
             foreach (Project project in targetDTE_.Solution.Projects){
                 foreach (ProjectItem item in project.ProjectItems){
@@ -596,6 +657,40 @@ namespace VisualStudioController {
             this.OpenFile(projectItem.FileNames[0]);
         }
  
+        void WriteProjectName(System.String fileFullPathName)
+        {
+            EnvDTE.Project project = GetProjectFromItemFullPathName(fileFullPathName, targetDTE_);
+            if(project == null){
+                ConsoleWriter.WriteDebugLine("対象のプロジェクトが見つかりませんでした");
+                return;
+            }
+            ConsoleWriter.WriteLine(project.Name);
+        }
+        
+        void WriteCurrentProjectName()
+        {
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
+                return;
+            }
+            foreach(EnvDTE.Project project in targetDTE2_.ActiveSolutionProjects){
+                ConsoleWriter.WriteLine(project.Name);
+                break;
+            }
+        }
+
+        void WriteStartUpProjectName()
+        {
+             
+            System.Array stringArray = targetDTE_.Solution.SolutionBuild.StartupProjects as System.Array;
+            ConsoleWriter.WriteLine(System.IO.Path.GetFileNameWithoutExtension(stringArray.GetValue(0).ToString()));    
+        }
+
+        void WriteSolutionName()
+        {
+            ConsoleWriter.WriteLine(targetDTE_.Name);
+        }
+
     }
 }
 
