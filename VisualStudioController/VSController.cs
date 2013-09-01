@@ -181,9 +181,13 @@ namespace VisualStudioController {
             if(dtelist == null){
                 dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
             }
+            //不正なDTEが取れることがあるのでとりあえずの対処
             foreach(DTE dte in dtelist){
-                if(GetProjectFromItemFullPathName(name, dte) != null){
-                    return dte;
+                try{
+                    if(GetProjectFromItemFullPathName(name, dte) != null){
+                        return dte;
+                    }
+                }catch{
                 }
             }
             return null;
