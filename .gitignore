@@ -5,3 +5,5 @@
 *.pydevproject
 .project
 /obj/
+
+bin/Debug
