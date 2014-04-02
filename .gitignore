@@ -4,6 +4,10 @@
 
 *.pydevproject
 .project
-/obj/
+obj/
 
-bin/Debug
+/bin/Debug/
+*.pdb
+*.vshost.exe
+*.vshost.exe.manifest
+*.v12.suo
