@@ -89,7 +89,7 @@ namespace VisualStudioController {
 
         public bool Analysis (string[] args)
         {
-            if(Analysis_ (args) == false){
+            if(Analysis_ (args) == false || ShowHelp == true){
                 ArgsInfo ();
                 return false;
             }
@@ -209,11 +209,29 @@ namespace VisualStudioController {
                     }
                 }
 
+
+                fileFullPath_ = ConvertPathSeparator(fileFullPath_);
+                targetName_ = ConvertPathSeparator(targetName_);
+
             }catch(System.Exception e){
                 ConsoleWriter.WriteLine(e.ToString());
                 return false;
             }
             return true;
+        }
+
+        private System.String ConvertPathSeparator(System.String valu)
+        {
+            System.String temp = valu;
+            if(System.String.IsNullOrEmpty(temp) == false){
+                if (System.IO.Path.DirectorySeparatorChar != '/'){
+                    temp = valu.Replace('/', System.IO.Path.DirectorySeparatorChar);
+                }else if (System.IO.Path.DirectorySeparatorChar != '\\'){
+                    temp = valu.Replace('\\', System.IO.Path.DirectorySeparatorChar);
+                }   
+            }
+            
+            return temp;
         }
 
         public void ArgsInfo ()
