@@ -193,6 +193,10 @@ namespace VisualStudioController {
                     if(GetProjectFromItemFullPathName(name, dte) != null){
                         return dte;
                     }
+                    //solutionの名前でもチェックをする
+                    if(dte.Solution.FullName.ToLower () == name.ToLower()){
+                        return dte;
+                    }
                 }catch{
                 }
             }
