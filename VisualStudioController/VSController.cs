@@ -142,6 +142,8 @@ namespace VisualStudioController {
                 WriteStartUpProjectName();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionName) == true){
                 WriteSolutionName();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetBuildStatus) == true){
+                WriteBuildStatus();
             }
         }
 
@@ -397,7 +399,7 @@ namespace VisualStudioController {
             if(rebuild == true){
                 CleanProject();
             }
-
+            //プロジェクトのbuildはbuildinfoを戻さないといけないので かならずbuild待ちを行うなにかいい方法がないものか...
             targetDTE_.Solution.SolutionBuild.Build(true);
 
             RestoreProjectBuildInfo(projectBuildInfoList_);    
@@ -694,6 +696,20 @@ namespace VisualStudioController {
         {
             ConsoleWriter.WriteLine(targetDTE_.Name);
         }
+        
+        void WriteBuildStatus()
+        {
+            if(targetDTE_.Solution.SolutionBuild.BuildState == vsBuildState.vsBuildStateDone){
+                ConsoleWriter.WriteLine("Done");
+            }else if(targetDTE_.Solution.SolutionBuild.BuildState == vsBuildState.vsBuildStateInProgress){
+                ConsoleWriter.WriteLine("InProgress");
+            }else if (targetDTE_.Solution.SolutionBuild.BuildState == vsBuildState.vsBuildStateNotStarted){
+                ConsoleWriter.WriteLine("NotStarted");
+            }else{
+                ConsoleWriter.WriteLine("unknown");
+            }
+        }
+
 
     }
 }

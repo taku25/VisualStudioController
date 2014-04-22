@@ -31,6 +31,7 @@ namespace VisualStudioController {
             GetCurrnetProjectName,
             GetStartUpProjectName,
             GetSolutionName,
+            GetBuildStatus,
             OpenFile,
             CloseSolution,
             AddBreakPoint,
@@ -116,6 +117,8 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.BuildProject] = true;
                 }else if (args[0] == "rebuildproject"){
                     commnadType_[(int)CommandType.ReBuildProject] = true;
+                }else if (args[0] == "getbuildstatus"){
+                    commnadType_[(int)CommandType.GetBuildStatus] = true;                    
                 }else if (args[0] == "cleanproject"){
                     commnadType_[(int)CommandType.CleanProject] = true;
                 }else if (args[0] == "compilefile"){
@@ -238,7 +241,7 @@ namespace VisualStudioController {
         {
             
             ConsoleWriter.WriteLine ("Usage: VisualStudioController <commnad> <options> ");
-            ConsoleWriter.WriteLine ("version 2013/06/01");
+            ConsoleWriter.WriteLine ("version 2014/04/22");
             ConsoleWriter.WriteLine ("<commnad>");
             ConsoleWriter.WriteLine ("build                       : ビルド");
             ConsoleWriter.WriteLine ("rebuild                     : リビルド");
@@ -268,6 +271,7 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("getcurrentprojectname       : カレントプロジェクト名を取得");
             ConsoleWriter.WriteLine ("getstartupprojectname       : スタートアッププロジェクト名を取得");
             ConsoleWriter.WriteLine ("getsolutionname             : 対象のファイルorプロジェクトが含まれているプロジェクト名を取得");
+            ConsoleWriter.WriteLine ("getbuildstatus              : 対象のファイルorプロジェクトが含まれているソリューションのビルド状況を取得");
             ConsoleWriter.WriteLine ("<options>");
             ConsoleWriter.WriteLine ("-[h]elp                     : ヘルプの表示");
             ConsoleWriter.WriteLine ("-[t]arget                   : [SourceFilePath(fullpath) or ProjectName(name) or SolutionName(name)] ソリューション名、プロジェクト名かソリューションに含まれているソースファイル名");
