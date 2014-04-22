@@ -1,5 +1,5 @@
 #VisualStudioController  
-version 2013/06/01  
+version 2014/04/23  
 
 ##説明
 起動中のVisualStudioを外部から操作または情報を取得するコンソールアプリケーション  
@@ -40,8 +40,10 @@ https://github.com/taku25/vim-visualstudio
 * 対象のVisualstudioで指定したファイルを開く
 * 対象のVisualstudioで開いているソリューションを閉じる
 * 対象のVisualstudioでカレントのビルド構成をコンソールに出力する
-* 対象のVisualStudioで編集中のソリューション名をコンソールに出力する
 * 対象のVisualStudioで編集中のソリューションでスタートアッププロジェクトに設定されているプロジェクト名をコンソールに出力する
+* 対象のVisualStudioで編集中のソリューション名をコンソールに出力する
+* 対象のVisualStudioで編集中のソリューションのファイル名をコンソールに出力する
+* 対象のVisualStudioで編集中のソリューションをフルパスでコンソールに出力する
 * Visual Studio 2005以上で有効 
  * 対象のVisualstudioで検索を行う
  * 対象のVisualStudioのエラー一覧ウインドウに表示されいている内容をコンソールに出力する
@@ -81,7 +83,9 @@ https://github.com/taku25/vim-visualstudio
     getprojectname              : 対象のファイルが含まれているプロジェクト名を取得
     getcurrentprojectname       : カレントプロジェクト名を取得
     getstartupprojectname       : スタートアッププロジェクト名を取得
-    getsolutionname             : 対象のファイルorプロジェクトが含まれているプロジェクト名を取得
+    getsolutionname             : 対象のファイルorプロジェクトが含まれているソリューション名を取得
+    getsolutionfilename         : 対象のファイルorプロジェクトが含まれているソリューションのファイル名を取得
+    getsolutionfullpath         : 対象のファイルorプロジェクトが含まれているソリューションのフルパスを取得
     <options>
     -[h]elp                     : ヘルプの表示
     -[t]arget                   : [SourceFilePath(fullpath) or ProjectName(name) or SolutionName(name)] ソリューション名、プロジェクト名かソリューションに含まれているソースファイル名
