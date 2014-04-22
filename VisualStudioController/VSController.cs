@@ -142,6 +142,10 @@ namespace VisualStudioController {
                 WriteStartUpProjectName();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionName) == true){
                 WriteSolutionName();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionFileName) == true){
+                WriteSolutionFileName();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionFullPath) == true){
+                WriteSolutionFullPath();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetBuildStatus) == true){
                 WriteBuildStatus();
             }
@@ -694,9 +698,19 @@ namespace VisualStudioController {
 
         void WriteSolutionName()
         {
-            ConsoleWriter.WriteLine(targetDTE_.Name);
+            ConsoleWriter.WriteLine(System.IO.Path.GetFileNameWithoutExtension(targetDTE_.Solution.FullName));
+        }
+
+        void WriteSolutionFileName()
+        {
+            ConsoleWriter.WriteLine(System.IO.Path.GetFileName(targetDTE_.Solution.FullName));
         }
         
+        void WriteSolutionFullPath()
+        {
+            ConsoleWriter.WriteLine(targetDTE_.Solution.FullName);
+        }
+
         void WriteBuildStatus()
         {
             if(targetDTE_.Solution.SolutionBuild.BuildState == vsBuildState.vsBuildStateDone){

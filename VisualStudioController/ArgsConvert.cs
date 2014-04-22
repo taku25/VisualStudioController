@@ -31,6 +31,8 @@ namespace VisualStudioController {
             GetCurrnetProjectName,
             GetStartUpProjectName,
             GetSolutionName,
+            GetSolutionFileName,
+            GetSolutionFullPath,
             GetBuildStatus,
             OpenFile,
             CloseSolution,
@@ -159,6 +161,10 @@ namespace VisualStudioController {
                     commnadType_[(int)CommandType.GetCurrnetProjectName] = true;
                 }else if (args[0] == "getsolutionname"){
                     commnadType_[(int)CommandType.GetSolutionName] = true;
+                }else if (args[0] == "getsolutionfilename"){
+                    commnadType_[(int)CommandType.GetSolutionFileName] = true;
+                }else if (args[0] == "getsolutionfullpath"){
+                    commnadType_[(int)CommandType.GetSolutionFullPath] = true;
                 }else if (args[0] == "getstartupprojectname"){
                     commnadType_[(int)CommandType.GetStartUpProjectName] = true;
                 }
