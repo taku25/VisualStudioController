@@ -124,8 +124,8 @@ namespace VisualStudioController {
                 CompileFile(argsConvert.FileFullPath, argsConvert.IsWait);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CancelBuild) == true){
                 CancelBuild();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetBuildConfig) == true){
-                WriteBuildConfig();
+            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetCurrentBuildConfig) == true){
+                WriteCurrentBuildConfig();
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.StopDebugRun) == true){
                 StopDebugRun(argsConvert.IsWait);
             }else if (argsConvert.Commnad(ArgsConvert.CommandType.CloseSolution) == true){
@@ -594,7 +594,7 @@ namespace VisualStudioController {
         }
 
 
-        public void WriteBuildConfig ()
+        public void WriteCurrentBuildConfig ()
         {
             
             if(targetDTE2_ == null){
@@ -610,6 +610,40 @@ namespace VisualStudioController {
             EnvDTE80.SolutionConfiguration2 config = targetDTE2_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
             ConsoleWriter.WriteLine(config.Name + "/" + config.PlatformName);
         }
+
+        public void WriteBuildConfigNameList ()
+        {
+            
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
+                return;
+            }
+
+            if(targetDTE2_.ToolWindows.ErrorList == null){
+                ConsoleWriter.WriteDebugLine("ErrorListがみつかりません");
+                return;
+            }
+
+            EnvDTE80.SolutionConfiguration2 config = targetDTE2_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
+            ConsoleWriter.WriteLine(config.Name);
+        }
+
+        public void WriteBuildPlatformList ()
+        {
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
+                return;
+            }
+
+            if(targetDTE2_.ToolWindows.ErrorList == null){
+                ConsoleWriter.WriteDebugLine("ErrorListがみつかりません");
+                return;
+            }
+
+            EnvDTE80.SolutionConfiguration2 config = targetDTE2_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
+            ConsoleWriter.WriteLine(config.Name);
+        }
+
 
         public void StopDebugRun(bool wait)
         {

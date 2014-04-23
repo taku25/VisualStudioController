@@ -26,12 +26,25 @@ namespace VisualStudioController{
             WriteLine_ (cString, false);
         }
 
+        static public void Write (System.String cString)
+        {
+            Write_ (cString, false);
+        }
+
         static private void WriteLine_ (System.String cString, bool debug)
         {
             if (debug == true && DebugEnable == false){
                 return;
             }
             System.Console.WriteLine (cString);
+        }
+
+        static private void Write_ (System.String cString, bool debug)
+        {
+            if (debug == true && DebugEnable == false){
+                return;
+            }
+            System.Console.Write (cString);
         }
 
     }
