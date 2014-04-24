@@ -55,6 +55,7 @@ namespace VisualStudioController {
             GetSolutionFullPath,
 
 
+            GetSolutionDirectory,
             OpenFile,
             CloseSolution,
             AddBreakPoint,
@@ -77,9 +78,9 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.Build]                   = "ビルド";
             commandHelpArray_[(int)CommandType.ReBuild]                 = "リビルド";
             commandHelpArray_[(int)CommandType.Clean]                   = "クリーン";
-            commandHelpArray_[(int)CommandType.BuildProject]            = "プロジェクトのビルド  強制的にwaitします";
-            commandHelpArray_[(int)CommandType.ReBuildProject]          = "プロジェクトのリビルド  強制的にwaitします";
-            commandHelpArray_[(int)CommandType.CleanProject]            = "プロジェクトのクリーン  強制的にwaitします";
+            commandHelpArray_[(int)CommandType.BuildProject]            = "プロジェクトのビルド  強制的にwait";
+            commandHelpArray_[(int)CommandType.ReBuildProject]          = "プロジェクトのリビルド  強制的にwait";
+            commandHelpArray_[(int)CommandType.CleanProject]            = "プロジェクトのクリーン  強制的にwait";
             commandHelpArray_[(int)CommandType.CompileFile]             = "ファイルのコンパイル";
             commandHelpArray_[(int)CommandType.CancelBuild]             = "ビルドのキャンセル";
             commandHelpArray_[(int)CommandType.Run]                     = "実行";
@@ -107,7 +108,9 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.CloseSolution]           =  "ソリューションを閉じる";
             commandHelpArray_[(int)CommandType.AddBreakPoint]           = "ブレークポイントの追加";
             commandHelpArray_[(int)CommandType.AddFile]                 = "ファイルの追加";
-            commandHelpArray_[(int)CommandType.SetCurrentBuildConfig]       = "ビルドコンフィグを変更します";
+            commandHelpArray_[(int)CommandType.SetCurrentBuildConfig]       = "ビルドコンフィグを変更";
+            commandHelpArray_[(int)CommandType.GetSolutionDirectory]       = "ソリューションのディレクトリを取得";
+            
            
         }
 

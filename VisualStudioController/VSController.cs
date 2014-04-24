@@ -53,6 +53,11 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.GetBuildConfigList] = WriteBuildConfigList;
             commandArray_[(int)ArgsConvert.CommandType.GetPlatformList] = WritePlatformList;
             
+            commandArray_[(int)ArgsConvert.CommandType.GetSolutionDirectory] = WriteSolutionDirectory;
+            
+            
+            
+                
             commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
             
         }
@@ -900,6 +905,11 @@ namespace VisualStudioController {
         void WriteStartUpProjectName()
         {
             ConsoleWriter.WriteLine(GetStartUpProjectName());    
+        }
+
+        void WriteSolutionDirectory ()
+        {
+            ConsoleWriter.WriteLine(System.IO.Path.GetDirectoryName(targetDTE_.Solution.FullName));
         }
 
         void WriteSolutionName()
