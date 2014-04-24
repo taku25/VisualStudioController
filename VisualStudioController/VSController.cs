@@ -48,6 +48,10 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.GetBuildStatus] = WriteBuildStatus;
             commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
 
+            commandArray_[(int)ArgsConvert.CommandType.GetBuildConfigList] = WriteBuildConfigList;
+            commandArray_[(int)ArgsConvert.CommandType.GetPlatformList] = WritePlatformList;
+
+            
             
         }
         
@@ -141,13 +145,13 @@ namespace VisualStudioController {
         {
             System.Collections.Generic.List<DTE> dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
 
-            if(System.String.IsNullOrEmpty(System.IO.Path.GetExtension(argsConvert.TargetName)) == true){
+
+            targetDTE_ = GetDTEFromItemFileFullPathName(argsConvert.TargetName, dtelist);
+            if (targetDTE_ == null){
                 targetDTE_ = GetDTEFromSolutionName(argsConvert.TargetName, dtelist);
                 if(targetDTE_ == null){
                     targetDTE_ = GetDTEFromProjectName(argsConvert.TargetName, dtelist);
                 }
-            }else{
-                targetDTE_ = GetDTEFromItemFileFullPathName(argsConvert.TargetName, dtelist);
             }
 
             if(targetDTE_ == null){
@@ -163,13 +167,16 @@ namespace VisualStudioController {
 
             if(System.String.IsNullOrEmpty(argsConvert.TargetProjectName) == false){
                 targetProject_ = GetProjectFromName(argsConvert.TargetProjectName);
-            }else{
-                targetProject_ = GetProjectFromItemFullPathName(argsConvert.TargetName, targetDTE_);
-            }
-            
-            if( targetProject_ == null){
                 ConsoleWriter.WriteDebugLine(@"対象のプロジェクトが見つかりません");
             }else{
+                targetProject_ = GetProjectFromItemFullPathName(argsConvert.TargetName, targetDTE_);
+                if(targetProject_ == null){
+                    //startupプロジェクトにする
+                    targetProject_ = GetProjectFromName(GetStartUpProjectName());
+                }
+            }
+            
+            if( targetProject_ != null){
                 projectBuildInfoList_ = CreateProjectBuildInfoList();
             }
 
@@ -258,32 +265,33 @@ namespace VisualStudioController {
             name = name.ToLower();
             DTE tempDte = null;
             try{
-            //最初に完全一致かどうか
-            foreach(DTE dte in dtelist){
-                System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
-                //foreachがうまくいかないので
-                for(int i = 0; i < dte.Solution.Projects.Count; i++){
-                    Project project = dte.Solution.Projects.Item(i + 1);
-                    if(project.Name.ToLower() == name){
-                        tempDte = dte;
-                        break;
-                    }
-                }
-            }
-
-            if(tempDte  == null){
-                //先頭から一部分のひかくでもokにする
+                //最初に完全一致かどうか
                 foreach(DTE dte in dtelist){
+                    System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
+                    //foreachがうまくいかないので
                     for(int i = 0; i < dte.Solution.Projects.Count; i++){
                         Project project = dte.Solution.Projects.Item(i + 1);
-                        if(project.Name.ToLower().IndexOf(name) == 0){
+                        if(project.Name.ToLower() == name){
                             tempDte = dte;
+                            break;
+                        }
+
+                        if(System.IO.Path.GetFileNameWithoutExtension (project.FullName).ToLower() == name){
+                            tempDte = dte;
+                        }else if(System.IO.Path.GetFileName (project.FullName).ToLower() == name){
+                            tempDte = dte;
+                        }else if(project.FullName.ToLower() == name){
+                            tempDte = dte;
+                        }else if (System.IO.Path.GetFileName (project.FullName).ToLower().IndexOf(name) == 0){
+                            tempDte = dte;
+                        }
+                        if(tempDte != null){
                             break;
                         }
                     }
                 }
-            }
             }catch{
+
             }
 
             return tempDte;
@@ -303,27 +311,24 @@ namespace VisualStudioController {
             name = name.ToLower();
             DTE tempDte = null;
             try{
-            //最初に完全一致かどうか
-            foreach(DTE dte in dtelist){
-                System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
-                if(solutionFullName == name){
-                    tempDte = dte;
-                    break;
-                }
-            }
-
-            if(tempDte  == null){
-                //先頭から一部分のひかくでもokにする
                 foreach(DTE dte in dtelist){
-                    System.String solutionFullName = System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower();
-                    if(solutionFullName.IndexOf (name) == 0){
+                    //
+                    if(System.IO.Path.GetFileNameWithoutExtension (dte.Solution.FullName).ToLower() == name){
                         tempDte = dte;
+                    }else if(System.IO.Path.GetFileName (dte.Solution.FullName).ToLower() == name){
+                        tempDte = dte;
+                    }else if(dte.Solution.FullName.ToLower() == name){
+                        tempDte = dte;
+                    }else if (System.IO.Path.GetFileName (dte.Solution.FullName).ToLower().IndexOf(name) == 0){
+                        tempDte = dte;
+                    }
+                    if(tempDte != null){
                         break;
                     }
                 }
-            }
             }catch{
             }
+
             return tempDte;
         }
 
@@ -685,7 +690,7 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine(config.Name + "/" + config.PlatformName);
         }
 
-        public void WriteBuildConfigNameList ()
+        public void WriteBuildConfigList ()
         {
             
             if(targetDTE2_ == null){
@@ -697,12 +702,23 @@ namespace VisualStudioController {
                 ConsoleWriter.WriteDebugLine("ErrorListがみつかりません");
                 return;
             }
+        
+            System.Collections.Generic.List<System.String> configmNameList = new System.Collections.Generic.List<string> ();
 
-            EnvDTE80.SolutionConfiguration2 config = targetDTE2_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
-            ConsoleWriter.WriteLine(config.Name);
+            foreach(EnvDTE80.SolutionConfiguration2 config in targetDTE2_.Solution.SolutionBuild.SolutionConfigurations){
+                if (config != null){
+                    if (configmNameList.Contains(config.Name) == false){
+                        configmNameList.Add(config.Name);
+                    }
+                }
+            }   
+
+            foreach(System.String config in configmNameList){
+                ConsoleWriter.WriteLine(config);
+            }
         }
 
-        public void WriteBuildPlatformList ()
+        public void WritePlatformList ()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -714,8 +730,20 @@ namespace VisualStudioController {
                 return;
             }
 
-            EnvDTE80.SolutionConfiguration2 config = targetDTE2_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
-            ConsoleWriter.WriteLine(config.Name);
+        
+            System.Collections.Generic.List<System.String> platformNameList = new System.Collections.Generic.List<string> ();
+
+            foreach(EnvDTE80.SolutionConfiguration2 config in targetDTE2_.Solution.SolutionBuild.SolutionConfigurations){
+                if (config != null){
+                    if (platformNameList.Contains(config.PlatformName) == false){
+                        platformNameList.Add(config.PlatformName);
+                    }
+                }
+            }   
+
+            foreach(System.String platform in platformNameList){
+                ConsoleWriter.WriteLine(platform);
+            }
         }
 
 
@@ -798,11 +826,15 @@ namespace VisualStudioController {
             }
         }
 
+        System.String GetStartUpProjectName ()
+        {    
+            System.Array stringArray = targetDTE_.Solution.SolutionBuild.StartupProjects as System.Array;
+            return System.IO.Path.GetFileNameWithoutExtension(stringArray.GetValue(0).ToString());    
+        }
+
         void WriteStartUpProjectName()
         {
-             
-            System.Array stringArray = targetDTE_.Solution.SolutionBuild.StartupProjects as System.Array;
-            ConsoleWriter.WriteLine(System.IO.Path.GetFileNameWithoutExtension(stringArray.GetValue(0).ToString()));    
+            ConsoleWriter.WriteLine(GetStartUpProjectName());    
         }
 
         void WriteSolutionName()

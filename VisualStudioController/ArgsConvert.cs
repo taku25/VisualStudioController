@@ -28,7 +28,7 @@ namespace VisualStudioController {
             GetErrorList,
             GetCurrentBuildConfig,
             GetBuildConfigList,
-            GetBuildPlatformList,
+            GetPlatformList,
             GetProjectName,
             GetCurrnetProjectName,
             GetStartUpProjectName,
@@ -74,12 +74,12 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.GetFindResult2]          = "検索結果ウインド2の結果を取得";
             commandHelpArray_[(int)CommandType.GetFindSymbolResult]     =  "未実装";
             commandHelpArray_[(int)CommandType.GetErrorList]            = "エラーウインド一覧の取得";
-            commandHelpArray_[(int)CommandType.GetCurrentBuildConfig]   =  "検索結果1を取得";
-            commandHelpArray_[(int)CommandType.GetBuildConfigList]      =  "検索結果2を取得";
-            commandHelpArray_[(int)CommandType.GetBuildPlatformList]    =  "シンボルの検索結果を取得";
+            commandHelpArray_[(int)CommandType.GetCurrentBuildConfig]   =  "カレントのビルドコンフィグ取得";
+            commandHelpArray_[(int)CommandType.GetBuildConfigList]      =  "ビルドコンフィグのリスト取得";
+            commandHelpArray_[(int)CommandType.GetPlatformList]         =  "プラットフォームリスト取得";
             commandHelpArray_[(int)CommandType.GetProjectName]          =  "プロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetCurrnetProjectName]   =  "カレントのプロジェクト名を取得";
-            commandHelpArray_[(int)CommandType.GetStartUpProjectName]   =  "スターっとアッププロジェクト名を取得";
+            commandHelpArray_[(int)CommandType.GetStartUpProjectName]   =  "スタートアッププロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetSolutionName]         =  "ソリューションの名前を取得";
             commandHelpArray_[(int)CommandType.GetSolutionFileName]     =  "ソリューションのファイル名を取得";
             commandHelpArray_[(int)CommandType.GetSolutionFullPath]     =  "ソリューションのフルパス取得";
