@@ -34,7 +34,6 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.OpenFile] = OpenFile;
             commandArray_[(int)ArgsConvert.CommandType.CompileFile] = CompileFile;
             commandArray_[(int)ArgsConvert.CommandType.CancelBuild] = CancelBuild;
-            commandArray_[(int)ArgsConvert.CommandType.GetCurrentBuildConfig] = WriteCurrentBuildConfig;
             commandArray_[(int)ArgsConvert.CommandType.StopDebugRun] = StopDebugRun;
             commandArray_[(int)ArgsConvert.CommandType.CloseSolution] = CloseSolution;
             commandArray_[(int)ArgsConvert.CommandType.Find] = Find;
@@ -46,12 +45,15 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionFileName] = WriteSolutionFileName;
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionFullPath] = WriteSolutionFullPath;
             commandArray_[(int)ArgsConvert.CommandType.GetBuildStatus] = WriteBuildStatus;
-            commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
 
+
+            //ビルドコンフィグ回り
+            commandArray_[(int)ArgsConvert.CommandType.GetCurrentBuildConfig] = WriteCurrentBuildConfig;
+            commandArray_[(int)ArgsConvert.CommandType.SetCurrentBuildConfig] = SetCurrnetBuildConfig;
             commandArray_[(int)ArgsConvert.CommandType.GetBuildConfigList] = WriteBuildConfigList;
             commandArray_[(int)ArgsConvert.CommandType.GetPlatformList] = WritePlatformList;
-
             
+            commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
             
         }
         
@@ -95,6 +97,11 @@ namespace VisualStudioController {
         private bool findMatchCase_ = false;
         private Action[] commandArray_ = new Action[Enum.GetValues(typeof(ArgsConvert.CommandType)).Length];
         private Action currentCommand_ = null;
+
+        private System.String platformName_ = "";
+        private System.String buildConfigName_ = "";
+        private EnvDTE80.SolutionConfiguration2 currentBuildConfiguration_ = null;
+        private System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2> buildConfigurationList_ = new System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2>();
 #endregion
 
         #region あくせっさ
@@ -138,6 +145,19 @@ namespace VisualStudioController {
             get { return findMatchCase_; }
             set { findMatchCase_  = value; }
         }
+
+        public System.String PlatformName
+        {
+            get { return platformName_; }
+            set { platformName_ = value; }
+        }
+
+        public System.String BuildConfigName
+        {
+            get { return buildConfigName_; }
+            set { buildConfigName_ = value; }
+        }
+
 
         #endregion
 
@@ -189,6 +209,15 @@ namespace VisualStudioController {
             FindWhat = argsConvert.FindWhat;
             FindMatchCase = argsConvert.FindMatchCase;
 
+            PlatformName = argsConvert.PlatformName;
+            BuildConfigName = argsConvert.BuildConfigName;
+
+
+
+            currentBuildConfiguration_ = targetDTE_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
+            foreach(EnvDTE80.SolutionConfiguration2 config in targetDTE_.Solution.SolutionBuild.SolutionConfigurations){                
+                buildConfigurationList_.Add(config);
+            }
 
             //実行するコマンド
             currentCommand_ = commandArray_[(int)argsConvert.GetRunCommandType()];
@@ -672,6 +701,42 @@ namespace VisualStudioController {
             }
         }
 
+        public void SetCurrnetBuildConfig ()
+        {
+            EnvDTE80.SolutionConfiguration2 config = GetSolutinConfiguration ();
+            if(config == null){
+                return;
+            }
+
+            config.Activate();           
+        }
+
+        public EnvDTE80.SolutionConfiguration2 GetSolutinConfiguration()
+        {
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
+                return null;
+            }
+
+            System.String buildConfigName = this.BuildConfigName;
+            if(System.String.IsNullOrEmpty(buildConfigName) == true){
+                buildConfigName = this.currentBuildConfiguration_.Name;
+            }
+
+            System.String platoformName = this.PlatformName;
+            if(System.String.IsNullOrEmpty(platoformName) == true){
+                platoformName = this.currentBuildConfiguration_.PlatformName;
+            }
+
+
+            foreach(EnvDTE80.SolutionConfiguration2 config in buildConfigurationList_){
+                if(config.Name == buildConfigName && config.PlatformName == platoformName){
+                    return config;
+                }
+            }
+
+            return null;
+        }
 
         public void WriteCurrentBuildConfig ()
         {

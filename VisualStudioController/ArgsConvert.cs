@@ -7,35 +7,54 @@ namespace VisualStudioController {
 
         public enum CommandType
         {
+            //ビルド
             Build = 0,
             ReBuild,
-            Clean,
+            GetBuildStatus,
             BuildProject,
             ReBuildProject,
+            CancelBuild,
+
+
+            Clean,
             CleanProject,
             CompileFile,
-            CancelBuild,
+
+            //実行&停止
             Run,
             DebugRun,
             StopDebugRun,
-            Find,
+
             GetFile,
             GetAllFiles,
             GetOutput,
+            
+            GetErrorList,
+
+            //検索
+            Find,
             GetFindResult1,
             GetFindResult2,
             GetFindSymbolResult,
-            GetErrorList,
+
+
+            //ビルドコンフィグ
             GetCurrentBuildConfig,
+            SetCurrentBuildConfig,
             GetBuildConfigList,
             GetPlatformList,
+
+            //プロジェクト名
             GetProjectName,
             GetCurrnetProjectName,
             GetStartUpProjectName,
+
+            //ソリューション名
             GetSolutionName,
             GetSolutionFileName,
             GetSolutionFullPath,
-            GetBuildStatus,
+
+
             OpenFile,
             CloseSolution,
             AddBreakPoint,
@@ -88,6 +107,8 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.CloseSolution]           =  "ソリューションを閉じる";
             commandHelpArray_[(int)CommandType.AddBreakPoint]           = "ブレークポイントの追加";
             commandHelpArray_[(int)CommandType.AddFile]                 = "ファイルの追加";
+            commandHelpArray_[(int)CommandType.SetCurrentBuildConfig]       = "ビルドコンフィグを変更します";
+           
         }
 
         private bool [] commnadType_ = new bool[Enum.GetValues(typeof(CommandType)).Length];
@@ -103,6 +124,8 @@ namespace VisualStudioController {
         private System.String findWhat_ = "";
         private FindTargetType findTarget_ = FindTargetType.Project;
         private bool findMatchCase_ = false;
+        private System.String platformName_ = "";
+        private System.String buildConfigName_  = "";
 
         public CommandType GetRunCommandType ()
         {
@@ -126,7 +149,9 @@ namespace VisualStudioController {
 
         public int Line { get { return line_; } }
         public int Column { get { return column_; } }
-
+        
+        public System.String PlatformName { get { return platformName_; } }
+        public System.String BuildConfigName { get { return buildConfigName_; } }
 
         public bool ShowHelp
         {
@@ -149,11 +174,17 @@ namespace VisualStudioController {
                     return false;
                 }
 
+                bool temp = false;
                 foreach(CommandType command in Enum.GetValues(typeof(CommandType))){
                     if (args[0] == command.ToString().ToLower()){
                         commnadType_[(int)command] = true;
+                        temp = true;
                         break;
                     }
+                }
+
+                if (temp == false){
+                    return false;
                 }
                
                 
@@ -186,11 +217,18 @@ namespace VisualStudioController {
                         if(args[i + 1] == "solution"){
                             findTarget_ = FindTargetType.Solution;
                         }
-                        i+=1; 
+                        i+=1;
+                    }else if (args[i].ToLower() == "-buildconfig" || args[i].ToLower() == "-bc"){
+                        buildConfigName_ = args[i + 1];
+                        i+=1;
+                    }else if (args[i].ToLower() == "-platform" || args[i].ToLower() == "-pf"){
+                        platformName_ = args[i + 1];
+                        i+=1;
                     }else if (args[i].ToLower() == "-enablefindmatchcase" || args[i].ToLower() == "-efm"){
                         findMatchCase_ = true; 
                     }
                 }
+
 
                 foreach(String str in args){
                     ConsoleWriter.WriteDebugLine(str);
@@ -252,9 +290,11 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("                              : SolutionName(name) or ProjectName(name)で指定する場合 名前の先頭一部でも有効です");
             ConsoleWriter.WriteLine ("-[w]ait                       : 終わるまで待つ(build and rebuild時に有効)");
             ConsoleWriter.WriteLine ("-[f]ile                       : 対象のソースファイル名(FullPath)を指定します. また-fに何も設定されていなかった場合かつ-tにSourceFilePathを設定していた場合はそれを使います");
-            ConsoleWriter.WriteLine ("-[p]roj                       : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です");
+            ConsoleWriter.WriteLine ("-[p]roj                       : 対象のプロジェクト名を指定します 名前の先頭一部でも有効です 省略された場合はスタートアッププロジェクトが使用されます");
             ConsoleWriter.WriteLine ("-[l]ine                       : 行を指定します");
             ConsoleWriter.WriteLine ("-[c]olumn                     : 列を指定します");
+            ConsoleWriter.WriteLine ("-buildconfig[bc]              : ビルドを行うコンフィグを設定します 省略された場合はカレントのコンフィグをコンフィグを使用します");
+            ConsoleWriter.WriteLine ("-platform[pf]                 : ビルドを行うプラットフォームを設定します 省略された場合はカレントのプラットフォームを使用します");
             ConsoleWriter.WriteLine ("-findwhat[fw]                 : 検索文字列の指定");
             ConsoleWriter.WriteLine ("-findtarget[ft]               : 検索対象設定");
             ConsoleWriter.WriteLine ("                              : [project カレントプロジェクト(default)]");
