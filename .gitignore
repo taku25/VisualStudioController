@@ -6,7 +6,7 @@
 .project
 obj/
 
-bin/Debug/
+Debug/
 *.pdb
 *.vshost.exe
 *.vshost.exe.manifest
