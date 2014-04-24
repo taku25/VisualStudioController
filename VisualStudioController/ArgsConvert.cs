@@ -40,13 +40,13 @@ namespace VisualStudioController {
             CloseSolution,
             AddBreakPoint,
             AddFile,
+            UnKnown,
         };
         
         public enum FindTargetType
         {
             Project = 0,
             Solution,
-            kMax,
         };
 
         public ArgsConvert ()
@@ -108,6 +108,17 @@ namespace VisualStudioController {
         {
             return commnadType_[(int)commandType];
         }
+
+        public CommandType GetRunCommandType ()
+        {
+            foreach(CommandType command in Enum.GetValues(typeof(CommandType))){
+                if (commnadType_[(int)command] == true){
+                    return command;
+                }
+            }
+            return CommandType.UnKnown;
+        }
+
 
         public System.String TargetName { get { return targetName_; } }
         public bool IsWait { get { return isWait_; } }

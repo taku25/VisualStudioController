@@ -15,7 +15,40 @@ namespace VisualStudioController {
 
         public VSController ()
         {
-            targetDTE_ = null;
+            commandArray_[(int)ArgsConvert.CommandType.Build]   = BuildSolution;
+            commandArray_[(int)ArgsConvert.CommandType.ReBuild] = ReBuildSolution;
+            commandArray_[(int)ArgsConvert.CommandType.Clean] = CleanSolution;
+            commandArray_[(int)ArgsConvert.CommandType.Run] = RunSolution;
+            commandArray_[(int)ArgsConvert.CommandType.DebugRun] = DebugRunSolution;
+            commandArray_[(int)ArgsConvert.CommandType.GetFile] = WriteCurrentEditFileName;
+            commandArray_[(int)ArgsConvert.CommandType.GetOutput] = WriteOutputWindowText;
+            commandArray_[(int)ArgsConvert.CommandType.GetFindResult1] = WriteFindResultWindowText1;
+            commandArray_[(int)ArgsConvert.CommandType.GetFindResult2] = WriteFindResultWindowText2;
+            commandArray_[(int)ArgsConvert.CommandType.GetFindSymbolResult] = WriteFindSymbolResultWindowText;
+            commandArray_[(int)ArgsConvert.CommandType.GetAllFiles] = WriteAllFiles;
+            commandArray_[(int)ArgsConvert.CommandType.AddBreakPoint] = AddBreakPoint;
+            commandArray_[(int)ArgsConvert.CommandType.GetErrorList] = WriteErrorWindowText;
+            commandArray_[(int)ArgsConvert.CommandType.BuildProject] = BuildProject;
+            commandArray_[(int)ArgsConvert.CommandType.ReBuildProject] = ReBuildProject;
+            commandArray_[(int)ArgsConvert.CommandType.CleanProject] = CleanProject;
+            commandArray_[(int)ArgsConvert.CommandType.OpenFile] = OpenFile;
+            commandArray_[(int)ArgsConvert.CommandType.CompileFile] = CompileFile;
+            commandArray_[(int)ArgsConvert.CommandType.CancelBuild] = CancelBuild;
+            commandArray_[(int)ArgsConvert.CommandType.GetCurrentBuildConfig] = WriteCurrentBuildConfig;
+            commandArray_[(int)ArgsConvert.CommandType.StopDebugRun] = StopDebugRun;
+            commandArray_[(int)ArgsConvert.CommandType.CloseSolution] = CloseSolution;
+            commandArray_[(int)ArgsConvert.CommandType.Find] = Find;
+            commandArray_[(int)ArgsConvert.CommandType.AddFile] = AddFile;
+            commandArray_[(int)ArgsConvert.CommandType.GetProjectName] = WriteProjectName;
+            commandArray_[(int)ArgsConvert.CommandType.GetCurrnetProjectName] = WriteCurrentProjectName;
+            commandArray_[(int)ArgsConvert.CommandType.GetStartUpProjectName] = WriteStartUpProjectName;
+            commandArray_[(int)ArgsConvert.CommandType.GetSolutionName] = WriteSolutionName;
+            commandArray_[(int)ArgsConvert.CommandType.GetSolutionFileName] = WriteSolutionFileName;
+            commandArray_[(int)ArgsConvert.CommandType.GetSolutionFullPath] = WriteSolutionFullPath;
+            commandArray_[(int)ArgsConvert.CommandType.GetBuildStatus] = WriteBuildStatus;
+            commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
+
+            
         }
         
         public void Dispose ()
@@ -41,114 +74,126 @@ namespace VisualStudioController {
                 get { return isBuild_; }
             }
         }
-
         
 #region めんば
         static private System.String VisualStudioProcessName = @"!VisualStudio.DTE";
-        DTE targetDTE_ = null;
-        EnvDTE80.DTE2 targetDTE2_ = null; //2005以上
-        EnvDTE.Project targetProject_ = null;
-        System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList_ = new System.Collections.Generic.List<ProjectBuildInfo>();
+        private DTE targetDTE_ = null;
+        private EnvDTE80.DTE2 targetDTE2_ = null; //2005以上
+        private EnvDTE.Project targetProject_ = null;
+        private System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList_ = new System.Collections.Generic.List<ProjectBuildInfo>();
+
+        private bool isWait_ = false;
+        private System.String fileFullPath_ = "";
+        private int line_ = 1;
+        private int column_ = 1;
+        private ArgsConvert.FindTargetType findTarget_;
+        private System.String findWhat_ = "";
+        private bool findMatchCase_ = false;
+        private Action[] commandArray_ = new Action[Enum.GetValues(typeof(ArgsConvert.CommandType)).Length];
+        private Action currentCommand_ = null;
 #endregion
 
-        public bool Initialize(System.String targetName, System.String projectName = null)
+        #region あくせっさ
+        public bool IsWait
+        {
+            get { return isWait_; }
+            set { isWait_ = value; }
+        }
+
+        public System.String FileFullPath
+        {
+            get { return fileFullPath_; }
+            set { fileFullPath_  = value; }
+        }
+
+        public int Line
+        {
+            get { return line_; }
+            set { line_ = value; }
+        }
+        
+        public int Column
+        {
+            get { return column_; }
+            set { column_ = value; }
+        }
+
+        public ArgsConvert.FindTargetType FindTarget
+        {
+            get { return findTarget_; }
+            set { findTarget_ = value; }
+        }
+        public System.String FindWhat
+        {
+            get { return findWhat_; }
+            set { findWhat_  = value; }
+        }
+     
+        public bool FindMatchCase
+        {
+            get { return findMatchCase_; }
+            set { findMatchCase_  = value; }
+        }
+
+        #endregion
+
+        public bool Initialize(ArgsConvert argsConvert)
         {
             System.Collections.Generic.List<DTE> dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
-            
 
-            if(System.String.IsNullOrEmpty(System.IO.Path.GetExtension(targetName)) == true){
-                targetDTE_ = GetDTEFromSolutionName(targetName, dtelist);
+            if(System.String.IsNullOrEmpty(System.IO.Path.GetExtension(argsConvert.TargetName)) == true){
+                targetDTE_ = GetDTEFromSolutionName(argsConvert.TargetName, dtelist);
                 if(targetDTE_ == null){
-                    targetDTE_ = GetDTEFromProjectName(targetName, dtelist);
+                    targetDTE_ = GetDTEFromProjectName(argsConvert.TargetName, dtelist);
                 }
             }else{
-                targetDTE_ = GetDTEFromItemFileFullPathName(targetName, dtelist);
+                targetDTE_ = GetDTEFromItemFileFullPathName(argsConvert.TargetName, dtelist);
             }
 
             if(targetDTE_ == null){
                 ConsoleWriter.WriteDebugLine(@"VisualStudioのプロセスが見つかりません");
+                return false;
             }
+
             //error一覧とかがほしいので一応これももっておく
-            targetDTE2_ = targetDTE_ as EnvDTE80.DTE2;
+            try{
+                targetDTE2_ = targetDTE_ as EnvDTE80.DTE2;
+            }catch{
+            }
 
-
-            if(System.String.IsNullOrEmpty(projectName) == false){
-                targetProject_ = GetProjectFromName(projectName);
-                projectBuildInfoList_ = CreateProjectBuildInfoList();
+            if(System.String.IsNullOrEmpty(argsConvert.TargetProjectName) == false){
+                targetProject_ = GetProjectFromName(argsConvert.TargetProjectName);
+            }else{
+                targetProject_ = GetProjectFromItemFullPathName(argsConvert.TargetName, targetDTE_);
+            }
+            
+            if( targetProject_ == null){
                 ConsoleWriter.WriteDebugLine(@"対象のプロジェクトが見つかりません");
+            }else{
+                projectBuildInfoList_ = CreateProjectBuildInfoList();
             }
 
 
-            return targetDTE_ != null;
+            IsWait = argsConvert.IsWait;
+            FileFullPath = argsConvert.FileFullPath;
+            Line = argsConvert.Line;
+            Column = argsConvert.Column;
+            FindTarget = argsConvert.FindTarget;
+            FindWhat = argsConvert.FindWhat;
+            FindMatchCase = argsConvert.FindMatchCase;
+
+
+            //実行するコマンド
+            currentCommand_ = commandArray_[(int)argsConvert.GetRunCommandType()];
+
+
+            return true;
         }
 
-        //この引数めっちゃきもちわるいなぁ〜 さてどうすっかなぁ〜..
-        public void Run (ArgsConvert argsConvert)
+  
+        public void Run ()
         {
-
-            if(argsConvert.Commnad(ArgsConvert.CommandType.Build) == true){
-                BuildSolution(false, argsConvert.IsWait);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.ReBuild) == true){
-                BuildSolution(true, argsConvert.IsWait);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.Clean) == true){
-                CleanSolution(argsConvert.IsWait);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.Run) == true){
-                RunSolution();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.DebugRun) == true){
-                DebugRunSolution();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFile) == true){
-                WriteCurrentEditFileName();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetOutput) == true){
-                WriteOutputWindowText();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindResult1) == true){
-                WriteFindResultWindowText(0);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindResult2) == true){
-                WriteFindResultWindowText(1);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetFindSymbolResult) == true){
-                WriteFindSymbolResultWindowText();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetAllFiles) == true){
-                WriteAllFiles();
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.AddBreakPoint) == true){
-                AddBreakPoint(argsConvert.FileFullPath, argsConvert.Line, argsConvert.Column);
-            }else if(argsConvert.Commnad(ArgsConvert.CommandType.GetErrorList) == true){
-                WriteErrorWindowText();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.BuildProject) == true){
-                BuildProject(false);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.ReBuildProject) == true){
-                BuildProject(true);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CleanProject) == true){
-                CleanProject();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.OpenFile) == true){
-                OpenFile(argsConvert.FileFullPath);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CompileFile) == true){
-                CompileFile(argsConvert.FileFullPath, argsConvert.IsWait);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CancelBuild) == true){
-                CancelBuild();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetCurrentBuildConfig) == true){
-                WriteCurrentBuildConfig();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.StopDebugRun) == true){
-                StopDebugRun(argsConvert.IsWait);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.CloseSolution) == true){
-                CloseSolution();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.Find) == true){
-                Find(argsConvert.FindWhat, argsConvert.FindTarget, argsConvert.FindMatchCase, argsConvert.IsWait);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.AddFile) == true){
-                AddFile(argsConvert.FileFullPath);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetProjectName) == true){
-                WriteProjectName(argsConvert.FileFullPath);
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetCurrnetProjectName) == true){
-                WriteCurrentProjectName();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetStartUpProjectName) == true){
-                WriteStartUpProjectName();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionName) == true){
-                WriteSolutionName();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionFileName) == true){
-                WriteSolutionFileName();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetSolutionFullPath) == true){
-                WriteSolutionFullPath();
-            }else if (argsConvert.Commnad(ArgsConvert.CommandType.GetBuildStatus) == true){
-                WriteBuildStatus();
-            }
+            currentCommand_();
         }
 
 
@@ -325,17 +370,27 @@ namespace VisualStudioController {
             return list;
         }
 
-        public void BuildSolution(bool rebuild, bool wait)
+        public void BuildSolution()
         {
-            if(rebuild == true){
-                CleanSolution(true);
-            }
-            targetDTE_.Solution.SolutionBuild.Build(wait);
+            BuildSolution(false);
         }
 
-        public void CleanSolution(bool wait)
+        public void ReBuildSolution()
         {
-            targetDTE_.Solution.SolutionBuild.Clean(wait);
+            BuildSolution(true);
+        }
+
+        public void BuildSolution(bool rebuild)
+        {
+            if(rebuild == true){
+                CleanSolution();
+            }
+            targetDTE_.Solution.SolutionBuild.Build(IsWait);
+        }
+
+        public void CleanSolution()
+        {
+            targetDTE_.Solution.SolutionBuild.Clean(true);
         }
         
         public void RunSolution()
@@ -394,6 +449,16 @@ namespace VisualStudioController {
             }
         }
 
+        public void BuildProject()
+        {
+            BuildProject(false);
+        }
+
+        public void ReBuildProject()
+        {
+            BuildProject(true);
+        }
+
         public void BuildProject(bool rebuild)
         {
             foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
@@ -429,33 +494,32 @@ namespace VisualStudioController {
         }
 
 
-        public System.String WriteCurrentEditFileName()
+        public void WriteCurrentEditFileName()
         {
             EnvDTE.Document document = targetDTE_.ActiveDocument;
             ConsoleWriter.WriteLine(document.FullName);
-         
-            return document.FullName;
         }
 
 
-        public void AddBreakPoint(System.String fileFullPath, int line, int column)
+        public void AddBreakPoint()
         {
-            targetDTE_.Solution.DTE.Debugger.Breakpoints.Add("", fileFullPath, line, column);
+            targetDTE_.Solution.DTE.Debugger.Breakpoints.Add("", FileFullPath, Line, Column);
         }
 
-        public void OpenFile(System.String fileFullPath)
+        public void OpenFile()
         {
-            targetDTE_.ItemOperations.OpenFile(fileFullPath);
+            targetDTE_.ItemOperations.OpenFile(FileFullPath);
         }
 
-        public void CompileFile(System.String fileFullPath, bool wait)
+
+        public void CompileFile()
         {
-            OpenFile(fileFullPath);
+            targetDTE_.ItemOperations.OpenFile(FileFullPath);
             //あまりコマンド使いたくないのだけどわからないのであきらめ
             targetDTE_.ExecuteCommand("Build.Compile");
             
 
-            while (wait){
+            while (IsWait){
                 try{
                     if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
                         System.Threading.Thread.Sleep(100);
@@ -512,6 +576,16 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine(outputString);
         }
         
+        public void WriteFindResultWindowText1 ()
+        {
+            WriteFindResultWindowText(0);
+        }
+
+        public void WriteFindResultWindowText2 ()
+        {
+            WriteFindResultWindowText(1);
+        }
+
         public void WriteFindResultWindowText (int type)
         {
             Window window = null;
@@ -645,12 +719,12 @@ namespace VisualStudioController {
         }
 
 
-        public void StopDebugRun(bool wait)
+        public void StopDebugRun()
         {
             while(true){
                 try{
                     if(targetDTE_.Debugger.CurrentMode != dbgDebugMode.dbgDesignMode){
-                        targetDTE_.Debugger.Stop(wait);
+                        targetDTE_.Debugger.Stop(IsWait);
                     }else{
                         break;
                     }
@@ -664,7 +738,7 @@ namespace VisualStudioController {
             targetDTE_.Solution.Close();
         }
 
-        public void Find(System.String findWhat, ArgsConvert.FindTargetType findTarget, bool findMatchCase, bool wait)
+        public void Find()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -673,12 +747,13 @@ namespace VisualStudioController {
 
 
             targetDTE2_.Find.Action = vsFindAction.vsFindActionFindAll;
-            targetDTE2_.Find.FindWhat = findWhat;
-            targetDTE2_.Find.MatchCase = findMatchCase;
-            targetDTE2_.Find.Target = (findTarget == ArgsConvert.FindTargetType.Project) ? vsFindTarget.vsFindTargetCurrentProject : vsFindTarget.vsFindTargetSolution;
+            targetDTE2_.Find.FindWhat = FindWhat;
+            targetDTE2_.Find.MatchCase = FindMatchCase;
+            targetDTE2_.Find.Target = (FindTarget == ArgsConvert.FindTargetType.Project) ? vsFindTarget.vsFindTargetCurrentProject : vsFindTarget.vsFindTargetSolution;
 
-            if(wait == true){
+            if(IsWait){
                 while((targetDTE2_.Find.Execute() == vsFindResult.vsFindResultPending)){
+                    System.Threading.Thread.Sleep(100);
                 }
             }else{
                 targetDTE2_.Find.Execute();
@@ -690,29 +765,25 @@ namespace VisualStudioController {
             */
         }
 
-        void AddFile(System.String addFileName)
+        void AddFile()
         {
             if(targetProject_ == null){
                 ConsoleWriter.WriteDebugLine("対象のプロジェクトが見つかりませんでした");
                 return;
             }
 
-            EnvDTE.ProjectItem projectItem = targetProject_.ProjectItems.AddFromFile(addFileName);
+            EnvDTE.ProjectItem projectItem = targetProject_.ProjectItems.AddFromFile(FileFullPath);
             if(projectItem == null){
                 ConsoleWriter.WriteDebugLine("追加失敗");
                 return;
             }
-            this.OpenFile(projectItem.FileNames[0]);
+
+            targetDTE_.ItemOperations.OpenFile(FileFullPath);
         }
  
-        void WriteProjectName(System.String fileFullPathName)
+        void WriteProjectName()
         {
-            EnvDTE.Project project = GetProjectFromItemFullPathName(fileFullPathName, targetDTE_);
-            if(project == null){
-                ConsoleWriter.WriteDebugLine("対象のプロジェクトが見つかりませんでした");
-                return;
-            }
-            ConsoleWriter.WriteLine(project.Name);
+            ConsoleWriter.WriteLine(targetProject_.Name);
         }
         
         void WriteCurrentProjectName()
@@ -762,6 +833,10 @@ namespace VisualStudioController {
             }
         }
 
+        void UnknownAction()
+        {
+            ConsoleWriter.WriteLine("UnknownAction");
+        }
 
     }
 }

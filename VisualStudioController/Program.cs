@@ -15,10 +15,11 @@ namespace VisualStudioController {
             }
 
              VSController vsController = new VSController();
-             if(vsController.Initialize(argsConvert.TargetName, argsConvert.TargetProjectName) == false){
+             if(vsController.Initialize(argsConvert) == false){
                  return;
              }
-             vsController.Run(argsConvert);
+             
+             vsController.Run();
         }
     }
 
