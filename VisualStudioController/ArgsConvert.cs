@@ -104,11 +104,6 @@ namespace VisualStudioController {
         private FindTargetType findTarget_ = FindTargetType.Project;
         private bool findMatchCase_ = false;
 
-        public bool Commnad (CommandType commandType)
-        {
-            return commnadType_[(int)commandType];
-        }
-
         public CommandType GetRunCommandType ()
         {
             foreach(CommandType command in Enum.GetValues(typeof(CommandType))){
