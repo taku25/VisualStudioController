@@ -229,6 +229,11 @@ namespace VisualStudioController {
                         i+=1;
                     }else if (args[i].ToLower() == "-enablefindmatchcase" || args[i].ToLower() == "-efm"){
                         findMatchCase_ = true; 
+                    }else if (args[i].ToLower() == "-outputencoding" || args[i].ToLower() == "-oe"){
+                        if(args[i + 1] == "utf8"){
+                            ConsoleWriter.SetEncoding(ConsoleWriter.Encoding.UTF8);
+                        }
+                        i+=1;
                     }
                 }
 
@@ -304,6 +309,9 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("                              : [solution ソリューション]");
             ConsoleWriter.WriteLine ("-enablefindmatchcase[efm]     : 大文字小文字判定有り無し");
             ConsoleWriter.WriteLine ("                              : [default 判定なし]");
+            ConsoleWriter.WriteLine ("-outputencoding[oe]           : コンソールに出力するエンコードを設定");
+            ConsoleWriter.WriteLine ("                              : [default (コマンドプロンプトに依存します)]");
+            ConsoleWriter.WriteLine ("                              : [utf8]");
             ConsoleWriter.WriteLine ("-debugwrite[dw]               : 詳細情報も出力(debug用)");
         }
     }

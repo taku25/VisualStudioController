@@ -9,10 +9,24 @@ namespace VisualStudioController{
     {
         static private bool isDebugEnable_ = false;
 
+        public enum Encoding{
+            Default = 0,
+            UTF8,
+        };
+
         static public bool DebugEnable
         {
             set { isDebugEnable_ = value; }
             get { return isDebugEnable_; }
+        }
+
+        static public void SetEncoding(Encoding encoding)
+        {
+            if(encoding == Encoding.Default){
+                System.Console.OutputEncoding = System.Text.Encoding.Default;
+            }else if(encoding == Encoding.UTF8){
+                System.Console.OutputEncoding = System.Text.Encoding.UTF8;
+            }
         }
 
 
