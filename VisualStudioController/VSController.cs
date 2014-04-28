@@ -572,6 +572,10 @@ namespace VisualStudioController {
 
         public void CancelBuild()
         {
+            //build中でないのであればむし
+            if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress){
+                return;
+            }
             while(true){
                 try{
                     if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
