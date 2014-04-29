@@ -69,6 +69,12 @@ namespace VisualStudioController {
             Solution,
         };
 
+        public enum FindResultLocation
+        {
+            one = 0,
+            two,
+        };
+
         public ArgsConvert ()
         {
             foreach(CommandType command in Enum.GetValues(typeof(CommandType))){
@@ -126,6 +132,8 @@ namespace VisualStudioController {
         private bool showHelp_ = false;
         private System.String findWhat_ = "";
         private FindTargetType findTarget_ = FindTargetType.Project;
+        private FindResultLocation findResultLocation_ = FindResultLocation.one;
+
         private bool findMatchCase_ = false;
         private System.String platformName_ = "";
         private System.String buildConfigName_  = "";
@@ -148,6 +156,7 @@ namespace VisualStudioController {
 
         public System.String FindWhat { get { return findWhat_; } }
         public FindTargetType FindTarget { get { return findTarget_; } }
+    
         public bool FindMatchCase { get { return findMatchCase_; } }
 
         public int Line { get { return line_; } }
@@ -155,6 +164,8 @@ namespace VisualStudioController {
         
         public System.String PlatformName { get { return platformName_; } }
         public System.String BuildConfigName { get { return buildConfigName_; } }
+
+        public FindResultLocation FindResultLocations { get { return findResultLocation_; }}
 
         public bool ShowHelp
         {
@@ -212,6 +223,13 @@ namespace VisualStudioController {
                         showHelp_ = true;
                     }else if (args[i].ToLower() == "-proj" || args[i].ToLower() == "-p"){
                         this.targetProjectName_ = args[i + 1];
+                        i+=1; 
+                    }else if (args[i].ToLower () == "findLocation" || args[i].ToLower () == "-fl"){
+                        if(args[i + i] == "two"){
+                            this.findResultLocation_ = FindResultLocation.two;
+                        }else{
+                            this.findResultLocation_ = FindResultLocation.one;
+                        }
                         i+=1; 
                     }else if (args[i].ToLower() == "-findwhat" || args[i].ToLower() == "-fw"){
                         findWhat_ = args[i + 1];

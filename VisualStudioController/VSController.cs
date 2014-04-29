@@ -91,6 +91,7 @@ namespace VisualStudioController {
         private DTE targetDTE_ = null;
         private EnvDTE80.DTE2 targetDTE2_ = null; //2005以上
         private EnvDTE.Project targetProject_ = null;
+        
         private System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList_ = new System.Collections.Generic.List<ProjectBuildInfo>();
 
         private bool isWait_ = false;
@@ -107,6 +108,7 @@ namespace VisualStudioController {
         private System.String buildConfigName_ = "";
         private EnvDTE80.SolutionConfiguration2 currentBuildConfiguration_ = null;
         private System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2> buildConfigurationList_ = new System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2>();
+        private EnvDTE.vsFindResultsLocation findResultsLocation_ = vsFindResultsLocation.vsFindResults1;
 #endregion
 
         #region あくせっさ
@@ -161,6 +163,12 @@ namespace VisualStudioController {
         {
             get { return buildConfigName_; }
             set { buildConfigName_ = value; }
+        }
+
+        public EnvDTE.vsFindResultsLocation  FindResultsLocation 
+        {
+            get { return  findResultsLocation_; }
+            set { findResultsLocation_ = value; }
         }
 
 
@@ -218,6 +226,12 @@ namespace VisualStudioController {
             BuildConfigName = argsConvert.BuildConfigName;
 
 
+
+            if(argsConvert.FindResultLocations == ArgsConvert.FindResultLocation.one){
+                FindResultsLocation = vsFindResultsLocation.vsFindResults1;
+            }else{
+                FindResultsLocation = vsFindResultsLocation.vsFindResults2;
+            }
 
             currentBuildConfiguration_ = targetDTE_.Solution.SolutionBuild.ActiveConfiguration as EnvDTE80.SolutionConfiguration2;
             foreach(EnvDTE80.SolutionConfiguration2 config in targetDTE_.Solution.SolutionBuild.SolutionConfigurations){                
@@ -425,6 +439,7 @@ namespace VisualStudioController {
                 CleanSolution();
             }
             targetDTE_.Solution.SolutionBuild.Build(IsWait);
+            
         }
 
         public void CleanSolution()
@@ -852,6 +867,7 @@ namespace VisualStudioController {
             targetDTE2_.Find.FindWhat = FindWhat;
             targetDTE2_.Find.MatchCase = FindMatchCase;
             targetDTE2_.Find.Target = (FindTarget == ArgsConvert.FindTargetType.Project) ? vsFindTarget.vsFindTargetCurrentProject : vsFindTarget.vsFindTargetSolution;
+            targetDTE2_.Find.ResultsLocation = FindResultsLocation;
 
             if(IsWait){
                 while((targetDTE2_.Find.Execute() == vsFindResult.vsFindResultPending)){
