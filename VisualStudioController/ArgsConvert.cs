@@ -225,7 +225,7 @@ namespace VisualStudioController {
                         this.targetProjectName_ = args[i + 1];
                         i+=1; 
                     }else if (args[i].ToLower () == "findLocation" || args[i].ToLower () == "-fl"){
-                        if(args[i + i] == "two"){
+                        if(args[i + 1] == "two"){
                             this.findResultLocation_ = FindResultLocation.two;
                         }else{
                             this.findResultLocation_ = FindResultLocation.one;
