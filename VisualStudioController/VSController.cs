@@ -732,7 +732,7 @@ namespace VisualStudioController {
             for(int i = 1; i <= errorItems.Count; i++){
                 EnvDTE80.ErrorItem item = errorItems.Item(i);
 
-                System.String lineAndCol = "(" + item.Line.ToString() + ")";
+                System.String lineAndCol = "(" + item.Line.ToString() + "," + item.Column.ToString() + ")";
 
                 ConsoleWriter.WriteLine(item.FileName + " " + lineAndCol + ": "  + item.Description);
             }
