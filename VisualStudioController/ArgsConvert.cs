@@ -48,7 +48,7 @@ namespace VisualStudioController {
             GetProjectName,
             GetCurrnetProjectName,
             GetStartUpProjectName,
-            GetProjectNameList,
+            GetProjectList,
             SetStartUpProject,
 
             //ソリューション名
@@ -108,7 +108,7 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.GetProjectName]          =  "プロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetCurrnetProjectName]   =  "カレントのプロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetStartUpProjectName]   =  "スタートアッププロジェクト名を取得";
-            commandHelpArray_[(int)CommandType.GetProjectNameList]      =  "プロジェクト名リスト取得";
+            commandHelpArray_[(int)CommandType.GetProjectList]      =  "プロジェクト名リスト取得";
             commandHelpArray_[(int)CommandType.SetStartUpProject]       =  "スタートアッププロジェクト設定";
             commandHelpArray_[(int)CommandType.GetSolutionName]         =  "ソリューションの名前を取得";
             commandHelpArray_[(int)CommandType.GetSolutionFileName]     =  "ソリューションのファイル名を取得";

@@ -44,7 +44,7 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.GetCurrnetProjectName] = WriteCurrentProjectName;
             commandArray_[(int)ArgsConvert.CommandType.GetStartUpProjectName] = WriteStartUpProjectName;
             commandArray_[(int)ArgsConvert.CommandType.SetStartUpProject] = SetStartUpProject;
-            commandArray_[(int)ArgsConvert.CommandType.GetProjectNameList] = WriteProjectNameList;
+            commandArray_[(int)ArgsConvert.CommandType.GetProjectList] = WriteProjectList;
 
             //ソリューション
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionName] = WriteSolutionName;
@@ -944,7 +944,7 @@ namespace VisualStudioController {
 
         }
 
-        void WriteProjectNameList()
+        void WriteProjectList()
         {
             try{
                 for(int i = 0; i < targetDTE_.Solution.Projects.Count; i++){
