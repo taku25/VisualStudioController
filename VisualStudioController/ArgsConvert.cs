@@ -86,9 +86,9 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.Build]                   = "ビルド";
             commandHelpArray_[(int)CommandType.ReBuild]                 = "リビルド";
             commandHelpArray_[(int)CommandType.Clean]                   = "クリーン";
-            commandHelpArray_[(int)CommandType.BuildProject]            = "プロジェクトのビルド  強制的にwait";
-            commandHelpArray_[(int)CommandType.ReBuildProject]          = "プロジェクトのリビルド  強制的にwait";
-            commandHelpArray_[(int)CommandType.CleanProject]            = "プロジェクトのクリーン  強制的にwait";
+            commandHelpArray_[(int)CommandType.BuildProject]            = "プロジェクトのビルド";
+            commandHelpArray_[(int)CommandType.ReBuildProject]          = "プロジェクトのリビルド";
+            commandHelpArray_[(int)CommandType.CleanProject]            = "プロジェクトのクリーン";
             commandHelpArray_[(int)CommandType.CompileFile]             = "ファイルのコンパイル";
             commandHelpArray_[(int)CommandType.CancelBuild]             = "ビルドのキャンセル";
             commandHelpArray_[(int)CommandType.Run]                     = "実行";
@@ -108,7 +108,7 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.GetProjectName]          =  "プロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetCurrnetProjectName]   =  "カレントのプロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetStartUpProjectName]   =  "スタートアッププロジェクト名を取得";
-            commandHelpArray_[(int)CommandType.GetProjectList]      =  "プロジェクト名リスト取得";
+            commandHelpArray_[(int)CommandType.GetProjectList]          =  "プロジェクト名リスト取得";
             commandHelpArray_[(int)CommandType.SetStartUpProject]       =  "スタートアッププロジェクト設定";
             commandHelpArray_[(int)CommandType.GetSolutionName]         =  "ソリューションの名前を取得";
             commandHelpArray_[(int)CommandType.GetSolutionFileName]     =  "ソリューションのファイル名を取得";
@@ -118,8 +118,8 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.CloseSolution]           =  "ソリューションを閉じる";
             commandHelpArray_[(int)CommandType.AddBreakPoint]           = "ブレークポイントの追加";
             commandHelpArray_[(int)CommandType.AddFile]                 = "ファイルの追加";
-            commandHelpArray_[(int)CommandType.SetCurrentBuildConfig]       = "ビルドコンフィグを変更";
-            commandHelpArray_[(int)CommandType.GetSolutionDirectory]       = "ソリューションのディレクトリを取得";
+            commandHelpArray_[(int)CommandType.SetCurrentBuildConfig]   = "ビルドコンフィグを変更";
+            commandHelpArray_[(int)CommandType.GetSolutionDirectory]    = "ソリューションのディレクトリを取得";
             
            
         }
