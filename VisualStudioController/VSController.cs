@@ -38,13 +38,18 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.CloseSolution] = CloseSolution;
             commandArray_[(int)ArgsConvert.CommandType.Find] = Find;
             commandArray_[(int)ArgsConvert.CommandType.AddFile] = AddFile;
+
+            //プロジェクト
             commandArray_[(int)ArgsConvert.CommandType.GetProjectName] = WriteProjectName;
             commandArray_[(int)ArgsConvert.CommandType.GetCurrnetProjectName] = WriteCurrentProjectName;
             commandArray_[(int)ArgsConvert.CommandType.GetStartUpProjectName] = WriteStartUpProjectName;
+            commandArray_[(int)ArgsConvert.CommandType.SetStartUpProject] = SetStartUpProject;
+            commandArray_[(int)ArgsConvert.CommandType.GetProjectNameList] = WriteProjectNameList;
+
+            //ソリューション
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionName] = WriteSolutionName;
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionFileName] = WriteSolutionFileName;
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionFullPath] = WriteSolutionFullPath;
-            commandArray_[(int)ArgsConvert.CommandType.GetBuildStatus] = WriteBuildStatus;
 
 
             //ビルドコンフィグ回り
@@ -56,6 +61,7 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.GetSolutionDirectory] = WriteSolutionDirectory;
             
             
+            commandArray_[(int)ArgsConvert.CommandType.GetBuildStatus] = WriteBuildStatus;
             
                 
             commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
@@ -109,6 +115,8 @@ namespace VisualStudioController {
         private EnvDTE80.SolutionConfiguration2 currentBuildConfiguration_ = null;
         private System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2> buildConfigurationList_ = new System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2>();
         private EnvDTE.vsFindResultsLocation findResultsLocation_ = vsFindResultsLocation.vsFindResults1;
+
+
 #endregion
 
         #region あくせっさ
@@ -224,8 +232,6 @@ namespace VisualStudioController {
 
             PlatformName = argsConvert.PlatformName;
             BuildConfigName = argsConvert.BuildConfigName;
-
-
 
             if(argsConvert.FindResultLocations == ArgsConvert.FindResultLocation.one){
                 FindResultsLocation = vsFindResultsLocation.vsFindResults1;
@@ -491,6 +497,18 @@ namespace VisualStudioController {
             return projectBuildInfoList;
         }
 
+        private void SetBuildMarkProjectBuildInfo(System.String markProjectName, System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
+        {
+            foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
+                if (context.ProjectName == markProjectName){
+                    context.ShouldBuild = true;
+                }else{
+                    context.ShouldBuild = false;
+                }
+            }
+       
+        }
+
         private void RestoreProjectBuildInfo(System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList)
         {
             foreach (ProjectBuildInfo projectInfo in projectBuildInfoList){
@@ -502,6 +520,7 @@ namespace VisualStudioController {
                 }
             }
         }
+
 
         public void BuildProject()
         {
@@ -515,36 +534,30 @@ namespace VisualStudioController {
 
         public void BuildProject(bool rebuild)
         {
-            foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
-                if (context.ProjectName == targetProject_.UniqueName){
-                    context.ShouldBuild = true;
-                }else{
-                    context.ShouldBuild = false;
-                }
-            }
-   
             if(rebuild == true){
-                CleanProject();
+                CleanProject(true);
             }
-            //プロジェクトのbuildはbuildinfoを戻さないといけないので かならずbuild待ちを行うなにかいい方法がないものか...
-            targetDTE_.Solution.SolutionBuild.Build(true);
+            
+            targetDTE_.Solution.SolutionBuild.BuildProject(targetDTE_.Solution.SolutionBuild.ActiveConfiguration.Name, targetProject_.UniqueName, IsWait);
 
-            RestoreProjectBuildInfo(projectBuildInfoList_);    
         }
 
         public void CleanProject()
         {
-            foreach (EnvDTE.SolutionContext context in targetDTE_.Solution.SolutionBuild.ActiveConfiguration.SolutionContexts){
-                if (context.ProjectName == targetProject_.UniqueName){
-                    context.ShouldBuild = true;
-                }else{
-                    context.ShouldBuild = false;
-                }
+            CleanProject(true);
+        }
+
+        public void CleanProject(bool changeProjectMark)
+        {
+            if(changeProjectMark == true){
+                SetBuildMarkProjectBuildInfo(targetProject_.UniqueName, projectBuildInfoList_);
             }
 
             targetDTE_.Solution.SolutionBuild.Clean(true);
 
-            RestoreProjectBuildInfo(projectBuildInfoList_);
+            if(changeProjectMark == true){
+                RestoreProjectBuildInfo(projectBuildInfoList_);
+            }
         }
 
 
@@ -920,6 +933,27 @@ namespace VisualStudioController {
         {    
             System.Array stringArray = targetDTE_.Solution.SolutionBuild.StartupProjects as System.Array;
             return System.IO.Path.GetFileNameWithoutExtension(stringArray.GetValue(0).ToString());    
+        }
+
+        void SetStartUpProject()
+        {
+            if(targetProject_ == null){
+                return;
+            }
+            targetDTE_.Solution.SolutionBuild.StartupProjects = targetProject_.FullName;
+
+        }
+
+        void WriteProjectNameList()
+        {
+            try{
+                for(int i = 0; i < targetDTE_.Solution.Projects.Count; i++){
+                    Project project = targetDTE_.Solution.Projects.Item(i + 1);
+                    ConsoleWriter.WriteLine(project.Name); 
+                }
+            }catch{
+
+            }
         }
 
         void WriteStartUpProjectName()

@@ -48,6 +48,8 @@ namespace VisualStudioController {
             GetProjectName,
             GetCurrnetProjectName,
             GetStartUpProjectName,
+            GetProjectNameList,
+            SetStartUpProject,
 
             //ソリューション名
             GetSolutionName,
@@ -106,6 +108,8 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.GetProjectName]          =  "プロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetCurrnetProjectName]   =  "カレントのプロジェクト名を取得";
             commandHelpArray_[(int)CommandType.GetStartUpProjectName]   =  "スタートアッププロジェクト名を取得";
+            commandHelpArray_[(int)CommandType.GetProjectNameList]      =  "プロジェクト名リスト取得";
+            commandHelpArray_[(int)CommandType.SetStartUpProject]       =  "スタートアッププロジェクト設定";
             commandHelpArray_[(int)CommandType.GetSolutionName]         =  "ソリューションの名前を取得";
             commandHelpArray_[(int)CommandType.GetSolutionFileName]     =  "ソリューションのファイル名を取得";
             commandHelpArray_[(int)CommandType.GetSolutionFullPath]     =  "ソリューションのフルパス取得";
@@ -148,6 +152,7 @@ namespace VisualStudioController {
             return CommandType.UnKnown;
         }
 
+     
 
         public System.String TargetName { get { return targetName_; } }
         public bool IsWait { get { return isWait_; } }
@@ -166,6 +171,8 @@ namespace VisualStudioController {
         public System.String BuildConfigName { get { return buildConfigName_; } }
 
         public FindResultLocation FindResultLocations { get { return findResultLocation_; }}
+
+  
 
         public bool ShowHelp
         {
