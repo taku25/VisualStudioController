@@ -410,6 +410,14 @@ namespace VisualStudioController {
                     if(displayName.Contains(name) == true){
                         Marshal.ThrowExceptionForHR(rot.GetObject(moniker[0], out runningObject));
                         list.Add((DTE)runningObject);
+                    }else{
+                        try{
+                            Marshal.ThrowExceptionForHR(rot.GetObject(moniker[0], out runningObject));
+                            if(runningObject is DTE){
+                                list.Add((DTE)runningObject);
+                            }
+                        }catch{
+                        }
                     }
 
                     if(bindCtx != null){
