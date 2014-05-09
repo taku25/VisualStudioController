@@ -1114,6 +1114,44 @@ namespace VisualStudioController {
 
         void GoToDeclaration()
         {
+            if(targetProjectItem_ == null){
+                ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
+                return;
+            }
+
+            //念のため開く
+            if(targetProjectItem_.IsOpen == false){
+                targetProjectItem_.Open();
+            }
+
+            targetProjectItem_.Document.Activate();
+            if((targetProjectItem_.Document.Selection is TextSelection) == false){
+                return;
+            }
+
+    
+            TextDocument textDocumet = targetProjectItem_.Document as TextDocument;
+            TextSelection textSelection = targetProjectItem_.Document.Selection as TextSelection;
+            textSelection.MoveToDisplayColumn(this.Line, this.Column);
+           
+           
+            System.String findWhat = FindWhat;
+            if(targetProjectItem_.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageVC || 
+               targetProjectItem_.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageMC){
+
+                if(System.String.IsNullOrEmpty(findWhat) == true){
+                    ConsoleWriter.WriteDebugLine("findwhat can not be found. please check option -fw");
+                    return;
+                }
+            }else{
+                ConsoleWriter.WriteDebugLine("GoToDeclaration is only used in C/C++");
+                return;
+            }
+     
+            targetDTE_.ExecuteCommand("Edit.GoToDeclaration", findWhat);
+
+            //ExecuteCommnadを終了まちする方法がわからん...orz
+            System.Threading.Thread.Sleep(500);
         }
 
         void WriteLanguageType()
