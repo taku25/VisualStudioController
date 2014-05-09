@@ -20,7 +20,7 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.Clean] = CleanSolution;
             commandArray_[(int)ArgsConvert.CommandType.Run] = RunSolution;
             commandArray_[(int)ArgsConvert.CommandType.DebugRun] = DebugRunSolution;
-            commandArray_[(int)ArgsConvert.CommandType.GetFile] = WriteCurrentEditFileName;
+            commandArray_[(int)ArgsConvert.CommandType.GetCurrentFileInfo] = WriteCurrentFileInfo;
             commandArray_[(int)ArgsConvert.CommandType.GetOutput] = WriteOutputWindowText;
             commandArray_[(int)ArgsConvert.CommandType.GetFindResult1] = WriteFindResultWindowText1;
             commandArray_[(int)ArgsConvert.CommandType.GetFindResult2] = WriteFindResultWindowText2;
@@ -62,6 +62,10 @@ namespace VisualStudioController {
             
             
             commandArray_[(int)ArgsConvert.CommandType.GetBuildStatus] = WriteBuildStatus;
+
+            commandArray_[(int)ArgsConvert.CommandType.GoToDefinition] = GoToDefinition;
+            commandArray_[(int)ArgsConvert.CommandType.GoToDeclaration] = GoToDeclaration;
+            commandArray_[(int)ArgsConvert.CommandType.GetLanguageType] = WriteLanguageType;
             
                 
             commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
@@ -97,6 +101,7 @@ namespace VisualStudioController {
         private DTE targetDTE_ = null;
         private EnvDTE80.DTE2 targetDTE2_ = null; //2005以上
         private EnvDTE.Project targetProject_ = null;
+        private EnvDTE.ProjectItem targetProjectItem_ = null;
         
         private System.Collections.Generic.List<ProjectBuildInfo> projectBuildInfoList_ = new System.Collections.Generic.List<ProjectBuildInfo>();
 
@@ -184,6 +189,8 @@ namespace VisualStudioController {
 
         public bool Initialize(ArgsConvert argsConvert)
         {
+
+
             System.Collections.Generic.List<DTE> dtelist = GetDTEFromProcessListFromName(VisualStudioProcessName);
 
 
@@ -229,9 +236,9 @@ namespace VisualStudioController {
             FindTarget = argsConvert.FindTarget;
             FindWhat = argsConvert.FindWhat;
             FindMatchCase = argsConvert.FindMatchCase;
-
             PlatformName = argsConvert.PlatformName;
             BuildConfigName = argsConvert.BuildConfigName;
+            
 
             if(argsConvert.FindResultLocations == ArgsConvert.FindResultLocation.one){
                 FindResultsLocation = vsFindResultsLocation.vsFindResults1;
@@ -244,6 +251,11 @@ namespace VisualStudioController {
                 buildConfigurationList_.Add(config);
             }
 
+            if(System.String.IsNullOrEmpty(FileFullPath) == false){
+                targetProjectItem_ = GetProjectItemFromItemFullPathName(FileFullPath, targetDTE_);   
+            }
+
+           
             //実行するコマンド
             currentCommand_ = commandArray_[(int)argsConvert.GetRunCommandType()];
 
@@ -258,20 +270,21 @@ namespace VisualStudioController {
         }
 
 
-        private bool _getDTEFromItemFileFullPathName (String name, ProjectItem item)
+        private ProjectItem _getProjectItemFromItemFileFullPathName (String name, ProjectItem item)
         {
             if(item.Kind == Constants.vsProjectItemKindPhysicalFile){
-                if(item.FileNames[0].ToLower() == name){
-                    return true;
+                if(item.FileNames[0].ToLower() == name.ToLower()){
+                    return item;
                 }
-            }else{
+            }else if(item.ProjectItems != null){
                 foreach (ProjectItem childItem in item.ProjectItems){
-                    if(_getDTEFromItemFileFullPathName(name, childItem) == true){
-                        return true;
+                    ProjectItem childitem = _getProjectItemFromItemFileFullPathName(name, childItem);
+                    if(childitem != null){
+                        return childitem;
                     }
                 }
             }
-            return false;
+            return null;
         }
 
         public EnvDTE.Project GetProjectFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
@@ -279,12 +292,26 @@ namespace VisualStudioController {
             for(int i = 0; i < dte.Solution.Projects.Count; i++){
                 Project project = dte.Solution.Projects.Item(i + 1);
                 foreach (ProjectItem item in project.ProjectItems){
-                    if(_getDTEFromItemFileFullPathName (itemFullPathName, item) == true){
+                    if(_getProjectItemFromItemFileFullPathName (itemFullPathName, item) != null){
                         return project;
                     }
                 }
             }
             return null;
+        }
+
+        public EnvDTE.ProjectItem GetProjectItemFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
+        {
+            for(int i = 0; i < dte.Solution.Projects.Count; i++){
+                Project project = dte.Solution.Projects.Item(i + 1);
+                foreach (ProjectItem item in project.ProjectItems){
+                    ProjectItem projItem = _getProjectItemFromItemFileFullPathName (itemFullPathName, item);
+                    if(projItem != null){
+                        return projItem;
+                    }
+                }
+            }
+            return null;        
         }
 
         private DTE GetDTEFromItemFileFullPathName(String name, System.Collections.Generic.List<DTE> dtelist = null)
@@ -412,6 +439,7 @@ namespace VisualStudioController {
                         list.Add((DTE)runningObject);
                     }else{
                         try{
+                            //これで無理やりexpressにも対応
                             Marshal.ThrowExceptionForHR(rot.GetObject(moniker[0], out runningObject));
                             if(runningObject is DTE){
                                 list.Add((DTE)runningObject);
@@ -569,10 +597,25 @@ namespace VisualStudioController {
         }
 
 
-        public void WriteCurrentEditFileName()
+        public void WriteCurrentFileInfo()
         {
             EnvDTE.Document document = targetDTE_.ActiveDocument;
-            ConsoleWriter.WriteLine(document.FullName);
+
+            int line = 0;
+            int column = 0;
+            if(document.Selection != null){
+                if(document.Selection is TextSelection){
+                    TextSelection textSelection = document.Selection as TextSelection;
+                    line =  textSelection.ActivePoint.Line;
+                    column = textSelection.ActivePoint.DisplayColumn;
+                }
+            }
+
+            ConsoleWriter.WriteLine("Name=" + document.FullName);
+            ConsoleWriter.WriteLine("LanguageType=" + GetLanguageType(targetDTE_.ActiveDocument.ProjectItem));
+            ConsoleWriter.WriteLine("Line=" + line.ToString());
+            ConsoleWriter.WriteLine("Column=" + column.ToString());
+
         }
 
 
@@ -628,7 +671,7 @@ namespace VisualStudioController {
         {
             if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
                 ConsoleWriter.WriteLine(item.FileNames[0]);
-            }else{
+            }else if( item.ProjectItems != null){
                 foreach (ProjectItem childItem in item.ProjectItems){
                     _writeAllFileName(childItem);
                 }
@@ -686,36 +729,61 @@ namespace VisualStudioController {
 
         public void WriteFindSymbolResultWindowText ()
         {
-            Window window = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
-            if(window == null){
+            Window findSymbolWindow = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
+            if(findSymbolWindow == null){
                 ConsoleWriter.WriteDebugLine("検索結果Windowがみつかりませんでした");
                 return;
             }
-            
-            //クリップボードをいじるので退避
-            System.Windows.Forms.IDataObject clipboarData = System.Windows.Forms.Clipboard.GetDataObject();
 
             try{
                 System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("[0-9]+");
-                int resultCount = Convert.ToInt32(regex.Match(window.Caption).Value);
+                int resultCount = Convert.ToInt32(regex.Match(findSymbolWindow.Caption).Value);
+
+                findSymbolWindow.Activate();
+                
+                
+                //一つ目はちょいまつ
+                targetDTE_.Application.ExecuteCommand("Edit.GoToNextLocation", String.Empty);
+                System.Threading.Thread.Sleep(500);
+
+                //System.Threading.Thread.Sleep(50);
+                System.Collections.Generic.List<System.String> referenceList = new System.Collections.Generic.List<string>();
+
+                
                 for (int i = 0; i < resultCount; i++){
-                    if(i != 0){
-                        window.Activate();
-                        targetDTE_.Application.ExecuteCommand("Edit.GoToNextLocation", String.Empty);
+                    findSymbolWindow.Activate();
+                    targetDTE_.Application.ExecuteCommand("Edit.GoToNextLocation", String.Empty);
+                    System.Threading.Thread.Sleep(400);
+                    try{
+                        TextSelection textSelection = targetDTE_.ActiveDocument.Selection as TextSelection;
+
+                        CodeElement codeElementFunction = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementFunction) as CodeElement;
+                        CodeElement codeElementProperty = null;
+                        CodeElement tempElement = null;
+
+                        if (codeElementFunction == null){
+                            codeElementProperty = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementProperty) as CodeElement;
+                        }else if (codeElementFunction.FullName.Length == 0){
+                            codeElementProperty = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementProperty) as CodeElement;
+                        }
+
+                        tempElement = codeElementFunction != null ? codeElementFunction : codeElementProperty;
+                    
+                        System.String tempValue = targetDTE_.ActiveDocument.FullName + "(" + tempElement.StartPoint.Line.ToString () + "):"+ " reference: " + tempElement.FullName;
+
+                
+                        ConsoleWriter.WriteLine(tempValue);
+
+                    }catch{
+                        continue;
                     }
-                    window.Activate();
-                    targetDTE_.Application.ExecuteCommand("Edit.Copy");
-
-                    ConsoleWriter.WriteLine(System.Windows.Forms.Clipboard.GetText());
                 }
-            }catch{
-         
+                foreach(System.String refString in referenceList){
+                }
+            }catch (System.Exception e){
+                    ConsoleWriter.WriteLine(e.ToString());
             }
 
-            try{
-                System.Windows.Forms.Clipboard.SetDataObject(clipboarData);
-            }catch{
-            }
         }
         
 
@@ -1000,6 +1068,83 @@ namespace VisualStudioController {
             }else{
                 ConsoleWriter.WriteLine("unknown");
             }
+        }
+
+        void GoToDefinition()
+        {
+            if(targetProjectItem_ == null){
+                ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
+                return;
+            }
+
+            //念のため開く
+            if(targetProjectItem_.IsOpen == false){
+                targetProjectItem_.Open();
+            }
+
+            targetProjectItem_.Document.Activate();
+            if((targetProjectItem_.Document.Selection is TextSelection) == false){
+                return;
+            }
+
+    
+            TextDocument textDocumet = targetProjectItem_.Document as TextDocument;
+            TextSelection textSelection = targetProjectItem_.Document.Selection as TextSelection;
+            textSelection.MoveToDisplayColumn(this.Line, this.Column);
+           
+           
+            System.String findWhat = FindWhat;
+            if(targetProjectItem_.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageVC || 
+               targetProjectItem_.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageMC){
+
+                if(System.String.IsNullOrEmpty(findWhat) == true){
+                    ConsoleWriter.WriteDebugLine("findwhat can not be found. please check option -fw");
+                    return;
+                }
+            }else{
+                findWhat = "";
+            }
+     
+            targetDTE_.ExecuteCommand("Edit.GoToDefinition", findWhat);
+
+            //ExecuteCommnadを終了まちする方法がわからん...orz
+            System.Threading.Thread.Sleep(500);
+            
+        }
+
+        void GoToDeclaration()
+        {
+        }
+
+        void WriteLanguageType()
+        {
+            if(targetProjectItem_ == null){
+                ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
+                return;
+            }
+            ConsoleWriter.WriteLine(GetLanguageType(targetProjectItem_));
+        }
+
+        System.String GetLanguageType(ProjectItem projectItem)
+        {
+
+            System.String language = "unknown";
+            try{
+                if(projectItem.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageVC || 
+                   projectItem.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageMC){
+                
+                  language = "CPlusPlus";
+                }else if(projectItem.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageCSharp){
+                    language = "CSharp";
+                }else if(projectItem.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageVB){
+                    language = "VisualBasic";
+                }else if(projectItem.ContainingProject.CodeModel.Language == EnvDTE.CodeModelLanguageConstants.vsCMLanguageIDL){
+                    language = "IDL";
+                }
+            }catch{
+            }
+
+            return language;
         }
 
         void UnknownAction()

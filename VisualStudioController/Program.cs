@@ -14,6 +14,7 @@ namespace VisualStudioController {
                 return;
             }
 
+
              VSController vsController = new VSController();
              if(vsController.Initialize(argsConvert) == false){
                  return;

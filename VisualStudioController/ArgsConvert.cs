@@ -25,7 +25,7 @@ namespace VisualStudioController {
             DebugRun,
             StopDebugRun,
 
-            GetFile,
+            GetCurrentFileInfo,
             GetAllFiles,
             GetOutput,
             
@@ -62,6 +62,9 @@ namespace VisualStudioController {
             CloseSolution,
             AddBreakPoint,
             AddFile,
+            GetLanguageType,
+            GoToDefinition,
+            GoToDeclaration,
             UnKnown,
         };
         
@@ -95,12 +98,12 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.DebugRun]                = "デバッグ実行";
             commandHelpArray_[(int)CommandType.StopDebugRun]            = "実行の停止";
             commandHelpArray_[(int)CommandType.Find]                    = "検索";
-            commandHelpArray_[(int)CommandType.GetFile]                 = "編集中ファイル取得";
+            commandHelpArray_[(int)CommandType.GetCurrentFileInfo]      = "編集中ファイル情報取得";
             commandHelpArray_[(int)CommandType.GetAllFiles]             = "全ファイル名をファイル取得";
             commandHelpArray_[(int)CommandType.GetOutput]               = "出力ウインドの内容を取得";
-            commandHelpArray_[(int)CommandType.GetFindResult1]          = "検索結果ウインド1の結果を取得";           
-            commandHelpArray_[(int)CommandType.GetFindResult2]          = "検索結果ウインド2の結果を取得";
-            commandHelpArray_[(int)CommandType.GetFindSymbolResult]     =  "未実装";
+            commandHelpArray_[(int)CommandType.GetFindResult1]          = "検索結果ウインド1の内容を取得";           
+            commandHelpArray_[(int)CommandType.GetFindResult2]          = "検索結果ウインド2の内容を取得";
+            commandHelpArray_[(int)CommandType.GetFindSymbolResult]     = "シンボルの検索ウインドウを取得";
             commandHelpArray_[(int)CommandType.GetErrorList]            = "エラーウインド一覧の取得";
             commandHelpArray_[(int)CommandType.GetCurrentBuildConfig]   =  "カレントのビルドコンフィグ取得";
             commandHelpArray_[(int)CommandType.GetBuildConfigList]      =  "ビルドコンフィグのリスト取得";
@@ -120,13 +123,16 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.AddFile]                 = "ファイルの追加";
             commandHelpArray_[(int)CommandType.SetCurrentBuildConfig]   = "ビルドコンフィグを変更";
             commandHelpArray_[(int)CommandType.GetSolutionDirectory]    = "ソリューションのディレクトリを取得";
-            
+            commandHelpArray_[(int)CommandType.GetLanguageType]         = "編集中ファイルの言語を取得";
+            commandHelpArray_[(int)CommandType.GoToDefinition]          = "定義へ移動(C#のみ)";
+            commandHelpArray_[(int)CommandType.GoToDeclaration]         = "宣言へ移動(C/C++のみ)";
            
         }
 
         private bool [] commnadType_ = new bool[Enum.GetValues(typeof(CommandType)).Length];
         private System.String [] commandHelpArray_ = new string[Enum.GetValues(typeof(CommandType)).Length];
 
+        public const System.String Version = "20150509";
         private bool isWait_ = false;
         private System.String targetName_ = "";
         private System.String fileFullPath_ = "";
@@ -134,6 +140,7 @@ namespace VisualStudioController {
         private int line_ = 1;
         private int column_ = 1;
         private bool showHelp_ = false;
+        private bool showVersion_ = false;
         private System.String findWhat_ = "";
         private FindTargetType findTarget_ = FindTargetType.Project;
         private FindResultLocation findResultLocation_ = FindResultLocation.one;
@@ -179,12 +186,29 @@ namespace VisualStudioController {
             get { return showHelp_; }
         }
 
+        public bool ShowVersion
+        {
+            get { return showVersion_; }
+        }
+
         public bool Analysis (string[] args)
         {
             if(Analysis_ (args) == false || ShowHelp == true){
                 ArgsInfo ();
                 return false;
             }
+
+            if(ShowVersion == true){
+                VersionInfo();
+                return false;
+            }
+
+            if(GetRunCommandType() == CommandType.UnKnown){
+                ArgsInfo ();
+                return false;
+            }
+
+
             return true;
         }
         
@@ -195,19 +219,14 @@ namespace VisualStudioController {
                     return false;
                 }
 
-                bool temp = false;
                 foreach(CommandType command in Enum.GetValues(typeof(CommandType))){
                     if (args[0] == command.ToString().ToLower()){
                         commnadType_[(int)command] = true;
-                        temp = true;
                         break;
                     }
                 }
 
-                if (temp == false){
-                    return false;
-                }
-               
+   
                 
                 for(int i = 1; i < args.Length; i++){
                     if(args[i].ToLower() == "-target" || args[i].ToLower() == "-t"){
@@ -231,7 +250,7 @@ namespace VisualStudioController {
                     }else if (args[i].ToLower() == "-proj" || args[i].ToLower() == "-p"){
                         this.targetProjectName_ = args[i + 1];
                         i+=1; 
-                    }else if (args[i].ToLower () == "findLocation" || args[i].ToLower () == "-fl"){
+                    }else if (args[i].ToLower () == "findlocation" || args[i].ToLower () == "-fl"){
                         if(args[i + 1] == "two"){
                             this.findResultLocation_ = FindResultLocation.two;
                         }else{
@@ -259,9 +278,10 @@ namespace VisualStudioController {
                             ConsoleWriter.SetEncoding(ConsoleWriter.Encoding.UTF8);
                         }
                         i+=1;
+                    }else if(args[i].ToLower() == "-version" || args[i].ToLower() == "-v"){
+                        showVersion_ = true;
                     }
                 }
-
 
                 foreach(String str in args){
                     ConsoleWriter.WriteDebugLine(str);
@@ -300,11 +320,16 @@ namespace VisualStudioController {
             return temp;
         }
 
+        public void VersionInfo()
+        {
+            ConsoleWriter.WriteLine ("Version " + ArgsConvert.Version);
+        }
+
         public void ArgsInfo ()
         {
             
             ConsoleWriter.WriteLine ("Usage: VisualStudioController <commnad> <options> ");
-            ConsoleWriter.WriteLine ("version 2014/04/22");
+            ConsoleWriter.WriteLine ("Version " + ArgsConvert.Version);
             ConsoleWriter.WriteLine ("<commnad>");
 
             foreach(CommandType command in Enum.GetValues(typeof(CommandType))){
@@ -318,7 +343,8 @@ namespace VisualStudioController {
             }
 
             ConsoleWriter.WriteLine ("<options>");
-            ConsoleWriter.WriteLine ("-[h]elp                       : ヘルプの表示");
+            ConsoleWriter.WriteLine ("-[h]elp                       : showhelp");
+            ConsoleWriter.WriteLine ("-[v]ersion                    : version");
             ConsoleWriter.WriteLine ("-[t]arget                     : [SourceFilePath(fullpath) or ProjectName(name) or SolutionName(name)] ソリューション名、プロジェクト名かソリューションに含まれているソースファイル名");
             ConsoleWriter.WriteLine ("                              : SolutionName(name) or ProjectName(name)で指定する場合 名前の先頭一部でも有効です");
             ConsoleWriter.WriteLine ("-[w]ait                       : 終わるまで待つ(build and rebuild時に有効)");
