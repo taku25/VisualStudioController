@@ -37,6 +37,7 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.StopDebugRun] = StopDebugRun;
             commandArray_[(int)ArgsConvert.CommandType.CloseSolution] = CloseSolution;
             commandArray_[(int)ArgsConvert.CommandType.Find] = Find;
+            commandArray_[(int)ArgsConvert.CommandType.FindSymbol] = FindSymbol;
             commandArray_[(int)ArgsConvert.CommandType.AddFile] = AddFile;
 
             //プロジェクト
@@ -287,7 +288,7 @@ namespace VisualStudioController {
             return null;
         }
 
-        public EnvDTE.Project GetProjectFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
+        private EnvDTE.Project GetProjectFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
         { 
             for(int i = 0; i < dte.Solution.Projects.Count; i++){
                 Project project = dte.Solution.Projects.Item(i + 1);
@@ -300,7 +301,7 @@ namespace VisualStudioController {
             return null;
         }
 
-        public EnvDTE.ProjectItem GetProjectItemFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
+        private EnvDTE.ProjectItem GetProjectItemFromItemFullPathName(System.String itemFullPathName, EnvDTE.DTE dte)
         {
             for(int i = 0; i < dte.Solution.Projects.Count; i++){
                 Project project = dte.Solution.Projects.Item(i + 1);
@@ -465,17 +466,17 @@ namespace VisualStudioController {
             return list;
         }
 
-        public void BuildSolution()
+        private void BuildSolution()
         {
             BuildSolution(false);
         }
 
-        public void ReBuildSolution()
+        private void ReBuildSolution()
         {
             BuildSolution(true);
         }
 
-        public void BuildSolution(bool rebuild)
+        private void BuildSolution(bool rebuild)
         {
             if(rebuild == true){
                 CleanSolution();
@@ -484,22 +485,22 @@ namespace VisualStudioController {
             
         }
 
-        public void CleanSolution()
+        private void CleanSolution()
         {
             targetDTE_.Solution.SolutionBuild.Clean(true);
         }
         
-        public void RunSolution()
+        private void RunSolution()
         {
             targetDTE_.Solution.SolutionBuild.Run();
         }
 
-        public void DebugRunSolution()
+        private void DebugRunSolution()
         {
             targetDTE_.Solution.SolutionBuild.Debug();
         }
 
-        public EnvDTE.Project GetProjectFromName(System.String projectName)
+        private EnvDTE.Project GetProjectFromName(System.String projectName)
         {
             EnvDTE.Project tempProject = null;
             projectName = projectName.ToLower();
@@ -558,17 +559,17 @@ namespace VisualStudioController {
         }
 
 
-        public void BuildProject()
+        private void BuildProject()
         {
             BuildProject(false);
         }
 
-        public void ReBuildProject()
+        private void ReBuildProject()
         {
             BuildProject(true);
         }
 
-        public void BuildProject(bool rebuild)
+        private void BuildProject(bool rebuild)
         {
             if(rebuild == true){
                 CleanProject(true);
@@ -578,12 +579,12 @@ namespace VisualStudioController {
 
         }
 
-        public void CleanProject()
+        private void CleanProject()
         {
             CleanProject(true);
         }
 
-        public void CleanProject(bool changeProjectMark)
+        private void CleanProject(bool changeProjectMark)
         {
             if(changeProjectMark == true){
                 SetBuildMarkProjectBuildInfo(targetProject_.UniqueName, projectBuildInfoList_);
@@ -597,7 +598,7 @@ namespace VisualStudioController {
         }
 
 
-        public void WriteCurrentFileInfo()
+        private void WriteCurrentFileInfo()
         {
             EnvDTE.Document document = targetDTE_.ActiveDocument;
 
@@ -619,18 +620,18 @@ namespace VisualStudioController {
         }
 
 
-        public void AddBreakPoint()
+        private void AddBreakPoint()
         {
             targetDTE_.Solution.DTE.Debugger.Breakpoints.Add("", FileFullPath, Line, Column);
         }
 
-        public void OpenFile()
+        private void OpenFile()
         {
             targetDTE_.ItemOperations.OpenFile(FileFullPath);
         }
 
 
-        public void CompileFile()
+        private void CompileFile()
         {
             targetDTE_.ItemOperations.OpenFile(FileFullPath);
             //あまりコマンド使いたくないのだけどわからないのであきらめ
@@ -649,7 +650,7 @@ namespace VisualStudioController {
             }
         }
 
-        public void CancelBuild()
+        private void CancelBuild()
         {
             //build中でないのであればむし
             if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress){
@@ -678,7 +679,7 @@ namespace VisualStudioController {
             }
         }
 
-        public void WriteAllFiles()
+        private void WriteAllFiles()
         {
             foreach (Project project in targetDTE_.Solution.Projects){
                 foreach (ProjectItem item in project.ProjectItems){
@@ -688,7 +689,7 @@ namespace VisualStudioController {
         }
 
 
-        public void WriteOutputWindowText ()
+        private void WriteOutputWindowText ()
         {
             OutputWindow outputWindow = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindOutput).Object as OutputWindow;
             EnvDTE.TextDocument textDocument = outputWindow.ActivePane.TextDocument;
@@ -698,17 +699,17 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine(outputString);
         }
         
-        public void WriteFindResultWindowText1 ()
+        private void WriteFindResultWindowText1 ()
         {
             WriteFindResultWindowText(0);
         }
 
-        public void WriteFindResultWindowText2 ()
+        private void WriteFindResultWindowText2 ()
         {
             WriteFindResultWindowText(1);
         }
 
-        public void WriteFindResultWindowText (int type)
+        private void WriteFindResultWindowText (int type)
         {
             Window window = null;
             if(type == 0){
@@ -727,7 +728,7 @@ namespace VisualStudioController {
         }
 
 
-        public void WriteFindSymbolResultWindowText ()
+        private void WriteFindSymbolResultWindowText ()
         {
             Window findSymbolWindow = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
             if(findSymbolWindow == null){
@@ -787,7 +788,7 @@ namespace VisualStudioController {
         }
         
 
-        public void WriteErrorWindowText ()
+        private void WriteErrorWindowText ()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -814,7 +815,7 @@ namespace VisualStudioController {
             }
         }
 
-        public void SetCurrnetBuildConfig ()
+        private void SetCurrnetBuildConfig ()
         {
             EnvDTE80.SolutionConfiguration2 config = GetSolutinConfiguration ();
             if(config == null){
@@ -824,7 +825,7 @@ namespace VisualStudioController {
             config.Activate();           
         }
 
-        public EnvDTE80.SolutionConfiguration2 GetSolutinConfiguration()
+        private EnvDTE80.SolutionConfiguration2 GetSolutinConfiguration()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -851,7 +852,7 @@ namespace VisualStudioController {
             return null;
         }
 
-        public void WriteCurrentBuildConfig ()
+        private void WriteCurrentBuildConfig ()
         {
             
             if(targetDTE2_ == null){
@@ -868,7 +869,7 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine(config.Name + "/" + config.PlatformName);
         }
 
-        public void WriteBuildConfigList ()
+        private void WriteBuildConfigList ()
         {
             
             if(targetDTE2_ == null){
@@ -896,7 +897,7 @@ namespace VisualStudioController {
             }
         }
 
-        public void WritePlatformList ()
+        private void WritePlatformList ()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -925,7 +926,7 @@ namespace VisualStudioController {
         }
 
 
-        public void StopDebugRun()
+        private void StopDebugRun()
         {
             while(true){
                 try{
@@ -939,12 +940,12 @@ namespace VisualStudioController {
             }
         }
 
-        public void CloseSolution()
+        private void CloseSolution()
         {
             targetDTE_.Solution.Close();
         }
 
-        public void Find()
+        private void Find()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -965,14 +966,58 @@ namespace VisualStudioController {
             }else{
                 targetDTE2_.Find.Execute();
             }
-            /*
-            //↓C#も左から条件判定だっけ？ あやしいのでやめる
-            while((targetDTE2_.Find.Execute() != vsFindResult.vsFindResultPending) && wait == true){
-            }
-            */
         }
 
-        void AddFile()
+        private void FindSymbol()
+        {
+            if(targetDTE2_ == null){
+                ConsoleWriter.WriteDebugLine("");
+                return;
+            }
+            if(targetProjectItem_ == null){
+                ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
+                return;
+            }
+
+            //念のため開く
+            if(targetProjectItem_.IsOpen == false){
+                targetProjectItem_.Open();
+            }
+
+            targetProjectItem_.Document.Activate();
+            if((targetProjectItem_.Document.Selection is TextSelection) == false){
+                return;
+            }
+
+    
+            TextDocument textDocumet = targetProjectItem_.Document as TextDocument;
+            TextSelection textSelection = targetProjectItem_.Document.Selection as TextSelection;
+            textSelection.MoveToDisplayColumn(this.Line, this.Column);
+            
+            
+            System.String findWhat = FindWhat;
+            targetDTE_.ExecuteCommand("Edit.Edit.FindSymbol", findWhat);
+            System.Threading.Thread.Sleep(100);
+            if(IsWait){
+
+                //これでおｋ？
+                for(;;){
+                    Window findSymbolWindow = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
+
+                    try{
+                        System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("[0-9]+");
+                        if(regex.IsMatch(findSymbolWindow.Caption) == true){
+                            break;
+                        }else{
+                            System.Threading.Thread.Sleep(100);
+                        }
+                    }catch{
+                    }
+                }
+            }
+        }
+
+        private void AddFile()
         {
             if(targetProject_ == null){
                 ConsoleWriter.WriteDebugLine("対象のプロジェクトが見つかりませんでした");
@@ -988,12 +1033,12 @@ namespace VisualStudioController {
             targetDTE_.ItemOperations.OpenFile(FileFullPath);
         }
  
-        void WriteProjectName()
+        private void WriteProjectName()
         {
             ConsoleWriter.WriteLine(targetProject_.Name);
         }
         
-        void WriteCurrentProjectName()
+        private void WriteCurrentProjectName()
         {
             if(targetDTE2_ == null){
                 ConsoleWriter.WriteDebugLine("visual studio2005以上でないと使用できません");
@@ -1005,13 +1050,13 @@ namespace VisualStudioController {
             }
         }
 
-        System.String GetStartUpProjectName ()
+        private System.String GetStartUpProjectName ()
         {    
             System.Array stringArray = targetDTE_.Solution.SolutionBuild.StartupProjects as System.Array;
             return System.IO.Path.GetFileNameWithoutExtension(stringArray.GetValue(0).ToString());    
         }
 
-        void SetStartUpProject()
+        private void SetStartUpProject()
         {
             if(targetProject_ == null){
                 return;
@@ -1020,7 +1065,7 @@ namespace VisualStudioController {
 
         }
 
-        void WriteProjectList()
+        private void WriteProjectList()
         {
             try{
                 for(int i = 0; i < targetDTE_.Solution.Projects.Count; i++){
@@ -1032,32 +1077,32 @@ namespace VisualStudioController {
             }
         }
 
-        void WriteStartUpProjectName()
+        private void WriteStartUpProjectName()
         {
             ConsoleWriter.WriteLine(GetStartUpProjectName());    
         }
 
-        void WriteSolutionDirectory ()
+        private void WriteSolutionDirectory ()
         {
             ConsoleWriter.WriteLine(System.IO.Path.GetDirectoryName(targetDTE_.Solution.FullName));
         }
 
-        void WriteSolutionName()
+        private void WriteSolutionName()
         {
             ConsoleWriter.WriteLine(System.IO.Path.GetFileNameWithoutExtension(targetDTE_.Solution.FullName));
         }
 
-        void WriteSolutionFileName()
+        private void WriteSolutionFileName()
         {
             ConsoleWriter.WriteLine(System.IO.Path.GetFileName(targetDTE_.Solution.FullName));
         }
         
-        void WriteSolutionFullPath()
+        private void WriteSolutionFullPath()
         {
             ConsoleWriter.WriteLine(targetDTE_.Solution.FullName);
         }
 
-        void WriteBuildStatus()
+        private void WriteBuildStatus()
         {
             if(targetDTE_.Solution.SolutionBuild.BuildState == vsBuildState.vsBuildStateDone){
                 ConsoleWriter.WriteLine("Done");
@@ -1070,7 +1115,7 @@ namespace VisualStudioController {
             }
         }
 
-        void GoToDefinition()
+        private void GoToDefinition()
         {
             if(targetProjectItem_ == null){
                 ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
@@ -1112,7 +1157,7 @@ namespace VisualStudioController {
             
         }
 
-        void GoToDeclaration()
+        private void GoToDeclaration()
         {
             if(targetProjectItem_ == null){
                 ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
@@ -1154,7 +1199,7 @@ namespace VisualStudioController {
             System.Threading.Thread.Sleep(500);
         }
 
-        void WriteLanguageType()
+        private void WriteLanguageType()
         {
             if(targetProjectItem_ == null){
                 ConsoleWriter.WriteDebugLine(FileFullPath.ToString () + " can not be found. please check option -f");
@@ -1163,7 +1208,7 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine(GetLanguageType(targetProjectItem_));
         }
 
-        System.String GetLanguageType(ProjectItem projectItem)
+        private System.String GetLanguageType(ProjectItem projectItem)
         {
 
             System.String language = "unknown";
@@ -1185,7 +1230,7 @@ namespace VisualStudioController {
             return language;
         }
 
-        void UnknownAction()
+        private void UnknownAction()
         {
             ConsoleWriter.WriteLine("UnknownAction");
         }

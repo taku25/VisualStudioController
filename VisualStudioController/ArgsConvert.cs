@@ -33,6 +33,7 @@ namespace VisualStudioController {
 
             //検索
             Find,
+            FindSymbol,
             GetFindResult1,
             GetFindResult2,
             GetFindSymbolResult,
@@ -98,6 +99,7 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.DebugRun]                = "デバッグ実行";
             commandHelpArray_[(int)CommandType.StopDebugRun]            = "実行の停止";
             commandHelpArray_[(int)CommandType.Find]                    = "検索";
+            commandHelpArray_[(int)CommandType.FindSymbol]              = "シンボルの検索";
             commandHelpArray_[(int)CommandType.GetCurrentFileInfo]      = "編集中ファイル情報取得";
             commandHelpArray_[(int)CommandType.GetAllFiles]             = "全ファイル名をファイル取得";
             commandHelpArray_[(int)CommandType.GetOutput]               = "出力ウインドの内容を取得";
