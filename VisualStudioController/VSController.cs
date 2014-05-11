@@ -997,25 +997,31 @@ namespace VisualStudioController {
             TextSelection textSelection = targetProjectItem_.Document.Selection as TextSelection;
             textSelection.MoveToDisplayColumn(this.Line, this.Column);
 
-            targetDTE_.ExecuteCommand("Edit.Edit.FindSymbol", FindWhat);
-            System.Threading.Thread.Sleep(100);
+
+
+            bool finddone = false;
             if(IsWait){
-
-                //これでおｋ？
+                targetDTE2_.Events.FindEvents.FindDone += (vsFindResult Result, bool Cancelled) =>
+                {
+                    ConsoleWriter.WriteDebugLine("おわた");
+            
+                    finddone = true;
+                };
+            }
+   
+            targetDTE_.ExecuteCommand("Edit.FindSymbol", FindWhat);
+            
+            if(IsWait){
                 for(;;){
-                    Window findSymbolWindow = targetDTE_.Windows.Item(EnvDTE.Constants.vsWindowKindFindSymbolResults);
-
-                    try{
-                        System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("[0-9]+");
-                        if(regex.IsMatch(findSymbolWindow.Caption) == true){
-                            break;
-                        }else{
-                            System.Threading.Thread.Sleep(100);
-                        }
-                    }catch{
+                    if(finddone == true){
+                        break;
                     }
                 }
             }
+        }
+
+        void FindEvents_FindDone(vsFindResult Result, bool Cancelled) {
+            throw new NotImplementedException();
         }
 
         private void AddFile()
