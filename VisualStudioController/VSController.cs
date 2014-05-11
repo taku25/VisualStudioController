@@ -989,14 +989,15 @@ namespace VisualStudioController {
                 return;
             }
 
+            if(System.String.IsNullOrEmpty(FindWhat) == true){
+                return;
+            }
     
             TextDocument textDocumet = targetProjectItem_.Document as TextDocument;
             TextSelection textSelection = targetProjectItem_.Document.Selection as TextSelection;
             textSelection.MoveToDisplayColumn(this.Line, this.Column);
-            
-            
-            System.String findWhat = FindWhat;
-            targetDTE_.ExecuteCommand("Edit.Edit.FindSymbol", findWhat);
+
+            targetDTE_.ExecuteCommand("Edit.Edit.FindSymbol", FindWhat);
             System.Threading.Thread.Sleep(100);
             if(IsWait){
 
