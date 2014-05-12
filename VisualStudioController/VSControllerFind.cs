@@ -193,10 +193,6 @@ namespace VisualStudioController {
             }
         }
 
-        void FindEvents_FindDone(vsFindResult Result, bool Cancelled) {
-            throw new NotImplementedException();
-        }
-
     }
 }
 
