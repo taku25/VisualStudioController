@@ -82,7 +82,7 @@ namespace VisualStudioController {
                         referencePointCode = referencePointCode.Replace("\r\n", "");
                         referencePointCode = referencePointCode.Replace("\n", "");
                         referencePointCode = referencePointCode.Replace("\r", "");
-                        
+                        referencePointCode = referencePointCode.TrimStart();
                         if (codeElementFunction == null){
                             codeElementProperty = textSelection.ActivePoint.get_CodeElement(vsCMElement.vsCMElementProperty) as CodeElement;
                         }else if (codeElementFunction.FullName.Length == 0){
