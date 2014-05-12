@@ -738,23 +738,22 @@ namespace VisualStudioController {
 
             try{
                 System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("[0-9]+");
+                if(regex.IsMatch(findSymbolWindow.Caption) == false){
+                    ConsoleWriter.WriteDebugLine("symbol not found");
+                    return;
+                }
+
                 int resultCount = Convert.ToInt32(regex.Match(findSymbolWindow.Caption).Value);
 
                 findSymbolWindow.Activate();
                 
-                
-                //一つ目はちょいまつ
-                targetDTE_.Application.ExecuteCommand("Edit.GoToNextLocation", String.Empty);
-                System.Threading.Thread.Sleep(500);
-
-                //System.Threading.Thread.Sleep(50);
-                System.Collections.Generic.List<System.String> referenceList = new System.Collections.Generic.List<string>();
-
+                targetDTE_.ExecuteCommand("Edit.GoToNextLocation");
                 
                 for (int i = 0; i < resultCount; i++){
                     findSymbolWindow.Activate();
-                    targetDTE_.Application.ExecuteCommand("Edit.GoToNextLocation", String.Empty);
-                    System.Threading.Thread.Sleep(400);
+                    targetDTE_.ExecuteCommand("Edit.GoToNextLocation");
+
+
                     try{
                         TextSelection textSelection = targetDTE_.ActiveDocument.Selection as TextSelection;
 
@@ -772,17 +771,12 @@ namespace VisualStudioController {
                     
                         System.String tempValue = targetDTE_.ActiveDocument.FullName + "(" + tempElement.StartPoint.Line.ToString () + "):"+ " reference: " + tempElement.FullName;
 
-                
                         ConsoleWriter.WriteLine(tempValue);
-
                     }catch{
-                        continue;
                     }
                 }
-                foreach(System.String refString in referenceList){
-                }
             }catch (System.Exception e){
-                    ConsoleWriter.WriteLine(e.ToString());
+                ConsoleWriter.WriteLine(e.ToString());
             }
 
         }
