@@ -270,6 +270,10 @@ namespace VisualStudioController {
             currentCommand_();
         }
 
+        private void UnknownAction()
+        {
+            ConsoleWriter.WriteLine("UnknownAction");
+        }
 
         private ProjectItem _getProjectItemFromItemFileFullPathName (String name, ProjectItem item)
         {
@@ -466,29 +470,7 @@ namespace VisualStudioController {
             return list;
         }
 
-        private void BuildSolution()
-        {
-            BuildSolution(false);
-        }
 
-        private void ReBuildSolution()
-        {
-            BuildSolution(true);
-        }
-
-        private void BuildSolution(bool rebuild)
-        {
-            if(rebuild == true){
-                CleanSolution();
-            }
-            targetDTE_.Solution.SolutionBuild.Build(IsWait);
-            
-        }
-
-        private void CleanSolution()
-        {
-            targetDTE_.Solution.SolutionBuild.Clean(true);
-        }
         
         private void RunSolution()
         {
@@ -558,46 +540,6 @@ namespace VisualStudioController {
             }
         }
 
-
-        private void BuildProject()
-        {
-            BuildProject(false);
-        }
-
-        private void ReBuildProject()
-        {
-            BuildProject(true);
-        }
-
-        private void BuildProject(bool rebuild)
-        {
-            if(rebuild == true){
-                CleanProject(true);
-            }
-            
-            targetDTE_.Solution.SolutionBuild.BuildProject(targetDTE_.Solution.SolutionBuild.ActiveConfiguration.Name, targetProject_.UniqueName, IsWait);
-
-        }
-
-        private void CleanProject()
-        {
-            CleanProject(true);
-        }
-
-        private void CleanProject(bool changeProjectMark)
-        {
-            if(changeProjectMark == true){
-                SetBuildMarkProjectBuildInfo(targetProject_.UniqueName, projectBuildInfoList_);
-            }
-
-            targetDTE_.Solution.SolutionBuild.Clean(true);
-
-            if(changeProjectMark == true){
-                RestoreProjectBuildInfo(projectBuildInfoList_);
-            }
-        }
-
-
         private void WriteCurrentFileInfo()
         {
             EnvDTE.Document document = targetDTE_.ActiveDocument;
@@ -631,43 +573,6 @@ namespace VisualStudioController {
         }
 
 
-        private void CompileFile()
-        {
-            targetDTE_.ItemOperations.OpenFile(FileFullPath);
-            //あまりコマンド使いたくないのだけどわからないのであきらめ
-            targetDTE_.ExecuteCommand("Build.Compile");
-            
-
-            while (IsWait){
-                try{
-                    if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
-                        System.Threading.Thread.Sleep(100);
-                    }else{
-                        break;
-                    }
-                }catch{
-                }
-            }
-        }
-
-        private void CancelBuild()
-        {
-            //build中でないのであればむし
-            if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateInProgress){
-                return;
-            }
-            while(true){
-                try{
-                    if(targetDTE_.Solution.SolutionBuild.BuildState != vsBuildState.vsBuildStateDone){
-                        targetDTE_.ExecuteCommand("Build.Cancel");
-                    }else{
-                        break;
-                    }
-                }catch{
-                }
-            }
-        }
-
         private void _writeAllFileName (ProjectItem item)
         {
             if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
@@ -682,6 +587,7 @@ namespace VisualStudioController {
         private void WriteAllFiles()
         {
             foreach (Project project in targetDTE_.Solution.Projects){
+                ConsoleWriter.WriteLine(project.FullName);
                 foreach (ProjectItem item in project.ProjectItems){
                     _writeAllFileName(item);
                 }
@@ -1073,12 +979,6 @@ namespace VisualStudioController {
 
             return language;
         }
-
-        private void UnknownAction()
-        {
-            ConsoleWriter.WriteLine("UnknownAction");
-        }
-
     }
 }
 

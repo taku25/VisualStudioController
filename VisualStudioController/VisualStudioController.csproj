@@ -56,6 +56,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VSController.cs" />
+    <Compile Include="VSControllerBuildAndCompile.cs" />
+    <Compile Include="VSControllerClean.cs" />
     <Compile Include="VSControllerFind.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

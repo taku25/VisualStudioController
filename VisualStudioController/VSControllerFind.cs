@@ -171,7 +171,6 @@ namespace VisualStudioController {
             textSelection.MoveToDisplayColumn(this.Line, this.Column);
 
 
-
             bool finddone = false;
             if(IsWait){
                 targetDTE2_.Events.FindEvents.FindDone += (vsFindResult Result, bool Cancelled) =>
