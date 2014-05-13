@@ -586,6 +586,7 @@ namespace VisualStudioController {
 
         private void WriteAllFiles()
         {
+            ConsoleWriter.WriteLine(targetDTE_.Solution.FullName);
             foreach (Project project in targetDTE_.Solution.Projects){
                 ConsoleWriter.WriteLine(project.FullName);
                 foreach (ProjectItem item in project.ProjectItems){
