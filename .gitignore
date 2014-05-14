@@ -6,6 +6,8 @@
 .project
 obj/
 
+bin/Release/
+binDebug/
 Debug/
 *.pdb
 *.vshost.exe
