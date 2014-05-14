@@ -122,7 +122,7 @@ namespace VisualStudioController {
         private System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2> buildConfigurationList_ = new System.Collections.Generic.List<EnvDTE80.SolutionConfiguration2>();
         private EnvDTE.vsFindResultsLocation findResultsLocation_ = vsFindResultsLocation.vsFindResults1;
 
-
+        private System.Collections.Generic.List<System.Object> solutionObjectList_ = new System.Collections.Generic.List<Object>();
 #endregion
 
         #region あくせっさ
@@ -229,6 +229,8 @@ namespace VisualStudioController {
                 projectBuildInfoList_ = CreateProjectBuildInfoList();
             }
 
+            this.solutionObjectList_ = CreateSolutionObjectList(targetDTE_.Solution);
+
 
             IsWait = argsConvert.IsWait;
             FileFullPath = argsConvert.FileFullPath;
@@ -259,7 +261,6 @@ namespace VisualStudioController {
            
             //実行するコマンド
             currentCommand_ = commandArray_[(int)argsConvert.GetRunCommandType()];
-
 
             return true;
         }
@@ -470,7 +471,29 @@ namespace VisualStudioController {
             return list;
         }
 
+        private void createSolutionObjectList_ (System.Collections.Generic.List<Object> objectList, ProjectItem item)
+        {
+            objectList.Add(item);
+            if( item.ProjectItems != null){
+                foreach (ProjectItem childItem in item.ProjectItems){
+                    createSolutionObjectList_(objectList, childItem);
+                }
+            }
+        }
 
+        private System.Collections.Generic.List<Object> CreateSolutionObjectList(EnvDTE.Solution solution)
+        {
+            System.Collections.Generic.List<Object> objectList = new System.Collections.Generic.List<Object> ();
+
+            objectList.Add(solution);
+            foreach (Project project in solution.Projects){
+                objectList.Add(project);
+                foreach (ProjectItem item in project.ProjectItems){
+                    createSolutionObjectList_(objectList, item);
+                }
+            }
+            return objectList;
+        }
         
         private void RunSolution()
         {
@@ -572,27 +595,112 @@ namespace VisualStudioController {
             targetDTE_.ItemOperations.OpenFile(FileFullPath);
         }
 
-
-        private void _writeAllFileName (ProjectItem item)
+        private class SolutionInfo
         {
-            if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
-                ConsoleWriter.WriteLine(item.FileNames[0]);
-            }else if( item.ProjectItems != null){
-                foreach (ProjectItem childItem in item.ProjectItems){
-                    _writeAllFileName(childItem);
+            private System.Collections.Generic.List<System.String> infoList_ = new System.Collections.Generic.List<string>();
+
+            public void AddInfo(System.String typeId, System.String value)
+            {
+                infoList_.Add(typeId + "=" + value);
+            }
+
+            public System.String GetInfo()
+            {
+                return System.String.Join("||", infoList_);
+            }
+
+            public System.String GetValue(System.String typeId)
+            {
+                foreach(System.String value in infoList_){
+                    if(value.IndexOf(typeId + "=") == 0){
+                        return value.Replace(typeId + "=", "");
+                    }
+                }
+                return "";
+            }
+        };
+
+        private void writeSolutionExplorerInfo_(EnvDTE.UIHierarchyItem uiItem, System.String parentId = "")
+        {
+            SolutionInfo solutionInfo = new SolutionInfo();
+            solutionInfo.AddInfo("NAME", uiItem.Name);
+
+            if(System.String.IsNullOrEmpty(parentId) == false){
+                solutionInfo.AddInfo("PARENTID", parentId);
+            }
+
+            if(uiItem.Object is EnvDTE.Solution){
+                EnvDTE.Solution solution = uiItem.Object as Solution;
+                solutionInfo.AddInfo("FULLPATH", solution.FullName);
+                solutionInfo.AddInfo("ID", solution.ExtenderCATID);
+                solutionInfo.AddInfo("TYPE", "SOLUTION");
+            }else if(uiItem.Object is EnvDTE.Project){
+                EnvDTE.Project project = uiItem.Object as Project;
+                solutionInfo.AddInfo("FULLPATH", project.FullName);
+                solutionInfo.AddInfo("ID", project.ExtenderCATID);
+                solutionInfo.AddInfo("TYPE", "PROJECT");
+            }else if(uiItem.Object is EnvDTE.ProjectItem){
+                EnvDTE.ProjectItem projectItem = uiItem.Object as ProjectItem;
+
+                if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile){
+                    solutionInfo.AddInfo("FULLPATH", projectItem.FileNames[0]);
+                    solutionInfo.AddInfo("ID", projectItem.ExtenderCATID);
+                    solutionInfo.AddInfo("TYPE", "FILE");
+                }else if(projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder){
+                    solutionInfo.AddInfo("FULLPATH", projectItem.FileNames[0]);
+                    solutionInfo.AddInfo("ID", projectItem.ExtenderCATID);
+                    solutionInfo.AddInfo("TYPE", "FOLDER");
+                }else if(projectItem.Kind == Constants.vsProjectItemKindVirtualFolder){
+                    solutionInfo.AddInfo("ID", projectItem.ExtenderCATID);
+                    solutionInfo.AddInfo("TYPE", "VIRTUALFOLDER");
+                }else{
+
+                }
+            }else{
+                ConsoleWriter.WriteDebugLine("unknown object : " + uiItem.Object.ToString());
+            }
+
+            ConsoleWriter.WriteLine(solutionInfo.GetInfo());
+            
+            foreach(EnvDTE.UIHierarchyItem item in uiItem.UIHierarchyItems){
+                writeSolutionExplorerInfo_(item, solutionInfo.GetValue("ID"));
+            }
+        }
+
+        private void WriteSolutionExplorerInfo()
+        {
+            EnvDTE.Window window = targetDTE_.Windows.Item(Constants.vsWindowKindSolutionExplorer);
+            if(window == null){
+                return;
+            }
+            
+            if(!(window.Object is EnvDTE.UIHierarchy)){
+                return;
+            }
+
+            EnvDTE.UIHierarchy hierarchy = window.Object as EnvDTE.UIHierarchy;
+            if(hierarchy != null){
+                foreach(EnvDTE.UIHierarchyItem item in hierarchy.UIHierarchyItems){
+                    writeSolutionExplorerInfo_(item);
                 }
             }
         }
 
         private void WriteAllFiles()
         {
-            ConsoleWriter.WriteLine(targetDTE_.Solution.FullName);
-            foreach (Project project in targetDTE_.Solution.Projects){
-                ConsoleWriter.WriteLine(project.FullName);
-                foreach (ProjectItem item in project.ProjectItems){
-                    _writeAllFileName(item);
+            foreach(System.Object obj in solutionObjectList_){
+                if (obj is EnvDTE.Solution){
+                    ConsoleWriter.WriteLine((obj as EnvDTE.Solution).FullName);
+                }else if (obj is EnvDTE.Project){
+                    ConsoleWriter.WriteLine((obj as EnvDTE.Project).FullName);
+                }else if (obj is EnvDTE.ProjectItem){
+                    EnvDTE.ProjectItem item = (obj as EnvDTE.ProjectItem);
+                    if ((item.Kind == Constants.vsProjectItemKindPhysicalFile)){
+                        ConsoleWriter.WriteLine(item.FileNames[0]);
+                    }
                 }
             }
+
         }
 
 
