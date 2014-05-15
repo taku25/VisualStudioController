@@ -15,30 +15,40 @@ namespace VisualStudioController {
 
         public VSController ()
         {
+
+            //build & compile
             commandArray_[(int)ArgsConvert.CommandType.Build]   = BuildSolution;
             commandArray_[(int)ArgsConvert.CommandType.ReBuild] = ReBuildSolution;
-            commandArray_[(int)ArgsConvert.CommandType.Clean] = CleanSolution;
+            commandArray_[(int)ArgsConvert.CommandType.BuildProject] = BuildProject;
+            commandArray_[(int)ArgsConvert.CommandType.ReBuildProject] = ReBuildProject;
+            commandArray_[(int)ArgsConvert.CommandType.CompileFile] = CompileFile;
+            commandArray_[(int)ArgsConvert.CommandType.CancelBuild] = CancelBuild;
+
+            //run
             commandArray_[(int)ArgsConvert.CommandType.Run] = RunSolution;
             commandArray_[(int)ArgsConvert.CommandType.DebugRun] = DebugRunSolution;
-            commandArray_[(int)ArgsConvert.CommandType.GetCurrentFileInfo] = WriteCurrentFileInfo;
+            commandArray_[(int)ArgsConvert.CommandType.StopDebugRun] = StopDebugRun;
+
+            //clean
+            commandArray_[(int)ArgsConvert.CommandType.CleanProject] = CleanProject;
+            commandArray_[(int)ArgsConvert.CommandType.Clean] = CleanSolution;
+
+            commandArray_[(int)ArgsConvert.CommandType.GetFileInfo] = WriteFileInfo;
+            commandArray_[(int)ArgsConvert.CommandType.GetAllFiles] = WriteAllFiles;
+            commandArray_[(int)ArgsConvert.CommandType.AddBreakPoint] = AddBreakPoint;
+            commandArray_[(int)ArgsConvert.CommandType.OpenFile] = OpenFile;
+            commandArray_[(int)ArgsConvert.CommandType.CloseSolution] = CloseSolution;
+            commandArray_[(int)ArgsConvert.CommandType.AddFile] = AddFile;
+            
             commandArray_[(int)ArgsConvert.CommandType.GetOutput] = WriteOutputWindowText;
+            commandArray_[(int)ArgsConvert.CommandType.GetErrorList] = WriteErrorWindowText;
+
+            //find
+            commandArray_[(int)ArgsConvert.CommandType.Find] = Find;
+            commandArray_[(int)ArgsConvert.CommandType.FindSymbol] = FindSymbol;
             commandArray_[(int)ArgsConvert.CommandType.GetFindResult1] = WriteFindResultWindowText1;
             commandArray_[(int)ArgsConvert.CommandType.GetFindResult2] = WriteFindResultWindowText2;
             commandArray_[(int)ArgsConvert.CommandType.GetFindSymbolResult] = WriteFindSymbolResultWindowText;
-            commandArray_[(int)ArgsConvert.CommandType.GetAllFiles] = WriteAllFiles;
-            commandArray_[(int)ArgsConvert.CommandType.AddBreakPoint] = AddBreakPoint;
-            commandArray_[(int)ArgsConvert.CommandType.GetErrorList] = WriteErrorWindowText;
-            commandArray_[(int)ArgsConvert.CommandType.BuildProject] = BuildProject;
-            commandArray_[(int)ArgsConvert.CommandType.ReBuildProject] = ReBuildProject;
-            commandArray_[(int)ArgsConvert.CommandType.CleanProject] = CleanProject;
-            commandArray_[(int)ArgsConvert.CommandType.OpenFile] = OpenFile;
-            commandArray_[(int)ArgsConvert.CommandType.CompileFile] = CompileFile;
-            commandArray_[(int)ArgsConvert.CommandType.CancelBuild] = CancelBuild;
-            commandArray_[(int)ArgsConvert.CommandType.StopDebugRun] = StopDebugRun;
-            commandArray_[(int)ArgsConvert.CommandType.CloseSolution] = CloseSolution;
-            commandArray_[(int)ArgsConvert.CommandType.Find] = Find;
-            commandArray_[(int)ArgsConvert.CommandType.FindSymbol] = FindSymbol;
-            commandArray_[(int)ArgsConvert.CommandType.AddFile] = AddFile;
 
             //プロジェクト
             commandArray_[(int)ArgsConvert.CommandType.GetProjectName] = WriteProjectName;
@@ -67,8 +77,13 @@ namespace VisualStudioController {
             commandArray_[(int)ArgsConvert.CommandType.GoToDefinition] = GoToDefinition;
             commandArray_[(int)ArgsConvert.CommandType.GoToDeclaration] = GoToDeclaration;
             commandArray_[(int)ArgsConvert.CommandType.GetLanguageType] = WriteLanguageType;
-            
+           
+            //solutionexploer
+            commandArray_[(int)ArgsConvert.CommandType.GetSolutionExploerNodeInfo] = WriteSolutionExploerNodeInfo;
+            commandArray_[(int)ArgsConvert.CommandType.GetSolutionExploerChildrenNodeInfo] = DoActionSolutionExploerNode;
                 
+            
+            //other
             commandArray_[(int)ArgsConvert.CommandType.UnKnown] = UnknownAction;
             
         }
@@ -123,6 +138,9 @@ namespace VisualStudioController {
         private EnvDTE.vsFindResultsLocation findResultsLocation_ = vsFindResultsLocation.vsFindResults1;
 
         private System.Collections.Generic.List<System.Object> solutionObjectList_ = new System.Collections.Generic.List<Object>();
+        private EnvDTE.UIHierarchy uiHierarchy_ = null;
+
+        private System.String targetNode_ = "";
 #endregion
 
         #region あくせっさ
@@ -185,6 +203,11 @@ namespace VisualStudioController {
             set { findResultsLocation_ = value; }
         }
 
+        public System.String TargetNode
+        {
+            get { return targetNode_; }
+            set { targetNode_ = value; }
+        }
 
         #endregion
 
@@ -241,6 +264,7 @@ namespace VisualStudioController {
             FindMatchCase = argsConvert.FindMatchCase;
             PlatformName = argsConvert.PlatformName;
             BuildConfigName = argsConvert.BuildConfigName;
+            TargetNode = argsConvert.TargetNode;
             
 
             if(argsConvert.FindResultLocations == ArgsConvert.FindResultLocation.one){
@@ -257,7 +281,13 @@ namespace VisualStudioController {
             if(System.String.IsNullOrEmpty(FileFullPath) == false){
                 targetProjectItem_ = GetProjectItemFromItemFullPathName(FileFullPath, targetDTE_);   
             }
-
+            
+            EnvDTE.Window window = targetDTE_.Windows.Item(Constants.vsWindowKindSolutionExplorer);
+            if(window != null){
+                if((window.Object is EnvDTE.UIHierarchy) == true){
+                    uiHierarchy_ = window.Object as EnvDTE.UIHierarchy;
+                }
+            }
            
             //実行するコマンド
             currentCommand_ = commandArray_[(int)argsConvert.GetRunCommandType()];
@@ -563,9 +593,20 @@ namespace VisualStudioController {
             }
         }
 
-        private void WriteCurrentFileInfo()
+        private void WriteFileInfo()
         {
-            EnvDTE.Document document = targetDTE_.ActiveDocument;
+            EnvDTE.Document document = null;
+            if(targetProjectItem_ == null){
+                document = targetDTE_.ActiveDocument;
+            }else{
+                targetProjectItem_.Open();
+                for(;;){
+                    if(targetProjectItem_.IsOpen == true){
+                        break;
+                    }
+                }
+                document = targetProjectItem_.Document;
+            }
 
             int line = 0;
             int column = 0;
@@ -581,7 +622,6 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine("LanguageType=" + GetLanguageType(targetDTE_.ActiveDocument.ProjectItem));
             ConsoleWriter.WriteLine("Line=" + line.ToString());
             ConsoleWriter.WriteLine("Column=" + column.ToString());
-
         }
 
 
@@ -595,96 +635,8 @@ namespace VisualStudioController {
             targetDTE_.ItemOperations.OpenFile(FileFullPath);
         }
 
-        private class SolutionInfo
-        {
-            private System.Collections.Generic.List<System.String> infoList_ = new System.Collections.Generic.List<string>();
 
-            public void AddInfo(System.String typeId, System.String value)
-            {
-                infoList_.Add(typeId + "=" + value);
-            }
 
-            public System.String GetInfo()
-            {
-                return System.String.Join("||", infoList_);
-            }
-
-            public System.String GetValue(System.String typeId)
-            {
-                foreach(System.String value in infoList_){
-                    if(value.IndexOf(typeId + "=") == 0){
-                        return value.Replace(typeId + "=", "");
-                    }
-                }
-                return "";
-            }
-        };
-
-        private void writeSolutionExplorerInfo_(EnvDTE.UIHierarchyItem uiItem, System.String parentId = "")
-        {
-            SolutionInfo solutionInfo = new SolutionInfo();
-            solutionInfo.AddInfo("NAME", uiItem.Name);
-
-            if(System.String.IsNullOrEmpty(parentId) == false){
-                solutionInfo.AddInfo("PARENTID", parentId);
-            }
-
-            if(uiItem.Object is EnvDTE.Solution){
-                EnvDTE.Solution solution = uiItem.Object as Solution;
-                solutionInfo.AddInfo("FULLPATH", solution.FullName);
-                solutionInfo.AddInfo("ID", solution.ExtenderCATID);
-                solutionInfo.AddInfo("TYPE", "SOLUTION");
-            }else if(uiItem.Object is EnvDTE.Project){
-                EnvDTE.Project project = uiItem.Object as Project;
-                solutionInfo.AddInfo("FULLPATH", project.FullName);
-                solutionInfo.AddInfo("ID", project.ExtenderCATID);
-                solutionInfo.AddInfo("TYPE", "PROJECT");
-            }else if(uiItem.Object is EnvDTE.ProjectItem){
-                EnvDTE.ProjectItem projectItem = uiItem.Object as ProjectItem;
-
-                if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile){
-                    solutionInfo.AddInfo("FULLPATH", projectItem.FileNames[0]);
-                    solutionInfo.AddInfo("ID", projectItem.ExtenderCATID);
-                    solutionInfo.AddInfo("TYPE", "FILE");
-                }else if(projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder){
-                    solutionInfo.AddInfo("FULLPATH", projectItem.FileNames[0]);
-                    solutionInfo.AddInfo("ID", projectItem.ExtenderCATID);
-                    solutionInfo.AddInfo("TYPE", "FOLDER");
-                }else if(projectItem.Kind == Constants.vsProjectItemKindVirtualFolder){
-                    solutionInfo.AddInfo("ID", projectItem.ExtenderCATID);
-                    solutionInfo.AddInfo("TYPE", "VIRTUALFOLDER");
-                }else{
-
-                }
-            }else{
-                ConsoleWriter.WriteDebugLine("unknown object : " + uiItem.Object.ToString());
-            }
-
-            ConsoleWriter.WriteLine(solutionInfo.GetInfo());
-            
-            foreach(EnvDTE.UIHierarchyItem item in uiItem.UIHierarchyItems){
-                writeSolutionExplorerInfo_(item, solutionInfo.GetValue("ID"));
-            }
-        }
-
-        private void WriteSolutionExplorerInfo()
-        {
-            EnvDTE.Window window = targetDTE_.Windows.Item(Constants.vsWindowKindSolutionExplorer);
-            if(window == null){
-                return;
-            }
-            
-            if(!(window.Object is EnvDTE.UIHierarchy)){
-                return;
-            }
-
-            EnvDTE.UIHierarchy hierarchy = window.Object as EnvDTE.UIHierarchy;
-            if(hierarchy != null){
-                foreach(EnvDTE.UIHierarchyItem item in hierarchy.UIHierarchyItems){
-                    writeSolutionExplorerInfo_(item);
-                }
-            }
-        }
 
         private void WriteAllFiles()
         {

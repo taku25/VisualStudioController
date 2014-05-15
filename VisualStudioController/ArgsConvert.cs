@@ -25,7 +25,7 @@ namespace VisualStudioController {
             DebugRun,
             StopDebugRun,
 
-            GetCurrentFileInfo,
+            GetFileInfo,
             GetAllFiles,
             GetOutput,
             
@@ -66,6 +66,12 @@ namespace VisualStudioController {
             GetLanguageType,
             GoToDefinition,
             GoToDeclaration,
+
+            //solutionExproler
+            GetSolutionExploerNodeInfo,
+            GetSolutionExploerChildrenNodeInfo,
+            DoActionSolutionExploerNode,
+
             UnKnown,
         };
         
@@ -100,7 +106,7 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.StopDebugRun]            = "実行の停止";
             commandHelpArray_[(int)CommandType.Find]                    = "検索";
             commandHelpArray_[(int)CommandType.FindSymbol]              = "シンボルの検索";
-            commandHelpArray_[(int)CommandType.GetCurrentFileInfo]      = "編集中ファイル情報取得";
+            commandHelpArray_[(int)CommandType.GetFileInfo]             = "編集中ファイル情報取得";
             commandHelpArray_[(int)CommandType.GetAllFiles]             = "全ファイル名をファイル取得";
             commandHelpArray_[(int)CommandType.GetOutput]               = "出力ウインドの内容を取得";
             commandHelpArray_[(int)CommandType.GetFindResult1]          = "検索結果ウインド1の内容を取得";           
@@ -128,6 +134,10 @@ namespace VisualStudioController {
             commandHelpArray_[(int)CommandType.GetLanguageType]         = "編集中ファイルの言語を取得";
             commandHelpArray_[(int)CommandType.GoToDefinition]          = "定義へ移動(C#のみ)";
             commandHelpArray_[(int)CommandType.GoToDeclaration]         = "宣言へ移動(C/C++のみ)";
+
+            commandHelpArray_[(int)CommandType.GetSolutionExploerNodeInfo]     = "ソリューションエクスプローラーのRootの情報取";
+            commandHelpArray_[(int)CommandType.GetSolutionExploerChildrenNodeInfo]     = "指定したNodeの子供情報の取得";
+            commandHelpArray_[(int)CommandType.DoActionSolutionExploerNode]     = "指定したNodeの子供情報の取得";
            
         }
 
@@ -150,6 +160,7 @@ namespace VisualStudioController {
         private bool findMatchCase_ = false;
         private System.String platformName_ = "";
         private System.String buildConfigName_  = "";
+        private System.String targetNode_ = "";
 
         public CommandType GetRunCommandType ()
         {
@@ -181,6 +192,7 @@ namespace VisualStudioController {
 
         public FindResultLocation FindResultLocations { get { return findResultLocation_; }}
 
+        public System.String TargetNode { get { return targetNode_; }}
   
 
         public bool ShowHelp
@@ -282,6 +294,9 @@ namespace VisualStudioController {
                         i+=1;
                     }else if(args[i].ToLower() == "-version" || args[i].ToLower() == "-v"){
                         showVersion_ = true;
+                    }else if(args[i].ToUpper() == "-node" || args[i].ToUpper() == "-n"){
+                        targetNode_ = args[i + 1];
+                        i+=1;
                     }
                 }
 
@@ -356,10 +371,14 @@ namespace VisualStudioController {
             ConsoleWriter.WriteLine ("-[c]olumn                     : 列を指定します");
             ConsoleWriter.WriteLine ("-buildconfig[bc]              : ビルドを行うコンフィグを設定します 省略された場合はカレントのコンフィグをコンフィグを使用します");
             ConsoleWriter.WriteLine ("-platform[pf]                 : ビルドを行うプラットフォームを設定します 省略された場合はカレントのプラットフォームを使用します");
+            ConsoleWriter.WriteLine ("-findlocation[fl]             : 検索結果ウインドウの指定");
+            ConsoleWriter.WriteLine ("                              : [one 検索結果ウインドウ1]");
+            ConsoleWriter.WriteLine ("                              : [two 検索結果ウインドウ2]");
             ConsoleWriter.WriteLine ("-findwhat[fw]                 : 検索文字列の指定");
             ConsoleWriter.WriteLine ("-findtarget[ft]               : 検索対象設定");
             ConsoleWriter.WriteLine ("                              : [project カレントプロジェクト(default)]");
             ConsoleWriter.WriteLine ("                              : [solution ソリューション]");
+            ConsoleWriter.WriteLine ("-node[n]                      : ソリューションエクスプローラーのノード");
             ConsoleWriter.WriteLine ("-enablefindmatchcase[efm]     : 大文字小文字判定有り無し");
             ConsoleWriter.WriteLine ("                              : [default 判定なし]");
             ConsoleWriter.WriteLine ("-outputencoding[oe]           : コンソールに出力するエンコードを設定");
